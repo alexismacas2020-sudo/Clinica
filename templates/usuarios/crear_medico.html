@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% load static crispy_forms_tags %}
+{% block title %}Crear médico | Clínica Reina{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/usuarios.css' %}">{% endblock %}
+{% block content %}
+<section class="auth-section py-5"><div class="container"><div class="row justify-content-center"><div class="col-lg-8"><div class="card auth-card border-0 shadow-sm"><div class="card-body p-4 p-md-5"><a class="link-secondary small" href="{% url 'usuarios:panel' %}"><i class="fa-solid fa-arrow-left"></i> Volver al panel</a><h1 class="h3 mt-3">Crear médico y credenciales</h1><p class="text-muted">El profesional recibirá el rol Médico automáticamente. Esta acción no crea un superusuario.</p>{% if not form.fields.especialidad.queryset.exists %}<div class="alert alert-warning">Primero crea al menos una especialidad desde el administrador.</div>{% endif %}<form method="post" novalidate>{% csrf_token %}{{ form|crispy }}<button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus me-2"></i>Crear médico</button></form></div></div></div></div></div></section>
+{% endblock %}

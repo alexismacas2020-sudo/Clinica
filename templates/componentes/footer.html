@@ -1,0 +1,46 @@
+<footer class="clinic-footer">
+  <div class="container clinic-footer__main">
+    <div class="row g-5">
+      <div class="col-lg-4">
+        <a class="clinic-footer__brand" href="{% url 'pagina:inicio' %}"><i class="fa-solid fa-heart-pulse" aria-hidden="true"></i> Clínica Reina</a>
+        <p class="clinic-footer__intro">Cuidamos tu salud con atención humana, tecnología moderna y profesionales especializados.</p>
+        <div class="clinic-footer__social" aria-label="Redes sociales">
+          <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+        </div>
+      </div>
+      <div class="col-6 col-lg-2">
+        <h2 class="clinic-footer__title">Explora</h2>
+        <ul class="clinic-footer__links">
+          <li><a href="{% url 'pagina:nosotros' %}">Nosotros</a></li>
+          <li><a href="{% url 'pagina:especialidades' %}">Especialidades</a></li>
+          <li><a href="{% url 'pagina:medicos' %}">Médicos</a></li>
+          <li><a href="{% url 'pagina:servicios' %}">Servicios</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-lg-3">
+        <h2 class="clinic-footer__title">Contacto</h2>
+        <address class="clinic-footer__contact">
+          <p><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Av. Principal 123<br>Centro Médico Reina</span></p>
+          <p><i class="fa-solid fa-phone" aria-hidden="true"></i><a href="tel:+593999999999">+593 99 999 9999</a></p>
+          <p><i class="fa-regular fa-envelope" aria-hidden="true"></i><a href="mailto:contacto@clinicareina.com">contacto@clinicareina.com</a></p>
+        </address>
+      </div>
+      <div class="col-lg-3">
+        <h2 class="clinic-footer__title">Horario de atención</h2>
+        <dl class="clinic-footer__schedule">
+          <div><dt>Lunes a viernes</dt><dd>08:00–18:00</dd></div>
+          <div><dt>Sábados</dt><dd>08:00–13:00</dd></div>
+          <div><dt>Emergencias</dt><dd>24 horas</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="clinic-footer__bottom">
+    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+      <p>© {% now "Y" %} Clínica Reina. Todos los derechos reservados.</p>
+      <button class="back-to-top" type="button" data-back-to-top aria-label="Volver al inicio de la página"><i class="fa-solid fa-arrow-up"></i></button>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Clínica Reina | Atención médica profesional{% endblock %}
+
+{% block css %}<link rel="stylesheet" href="{% static 'css/home.css' %}">{% endblock %}
+
+{% block content %}
+<section class="hero" aria-labelledby="hero-title">
+  <span class="hero__shape hero__shape--one" aria-hidden="true"></span>
+  <span class="hero__shape hero__shape--two" aria-hidden="true"></span>
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <span class="badge-clinica" data-animate="fade-up"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Cuidado médico de confianza</span>
+        <h1 id="hero-title" data-animate="fade-up" data-animate-delay="100">Tu salud está en las <span>mejores manos</span></h1>
+        <p data-animate="fade-up" data-animate-delay="200">Contamos con médicos especialistas, tecnología moderna y atención personalizada para cuidar de ti y tu familia.</p>
+        <div class="hero__actions" data-animate="fade-up" data-animate-delay="300">
+          <a href="{% url 'citas:agendar' %}" class="btn btn-primary btn-lg"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> Agendar cita</a>
+          <a href="{% url 'pagina:contacto' %}" class="btn btn-outline-primary btn-lg">Contactar</a>
+        </div>
+        <div class="hero__trust" data-animate="fade-up" data-animate-delay="400">
+          <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Atención segura</span>
+          <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Equipo especializado</span>
+        </div>
+      </div>
+      <div class="col-lg-6 text-center" data-animate="slide-left" data-animate-delay="180" data-animate-duration="800">
+        <div class="hero__visual">
+          <span class="hero__icon hero__icon--heart float-soft" aria-hidden="true"><i class="fa-solid fa-heart-pulse"></i></span>
+          <div class="hero-image" role="img" aria-label="Profesional médico de Clínica Reina"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i><span class="hero-image__cross"><i class="fa-solid fa-plus"></i></span></div>
+          <div class="hero__note" data-animate="zoom-in" data-animate-delay="600"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i><span><strong>50+</strong> especialistas</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stats" aria-label="Clínica Reina en cifras">
+  <div class="container">
+    <div class="row g-4 text-center">
+      <div class="col-6 col-lg-3" data-animate="fade-up"><div class="stat-item"><strong><span data-counter="5000">0</span>+</strong><p>Pacientes atendidos</p></div></div>
+      <div class="col-6 col-lg-3" data-animate="fade-up" data-animate-delay="100"><div class="stat-item"><strong><span data-counter="50">0</span>+</strong><p>Médicos especialistas</p></div></div>
+      <div class="col-6 col-lg-3" data-animate="fade-up" data-animate-delay="200"><div class="stat-item"><strong><span data-counter="15">0</span></strong><p>Años de experiencia</p></div></div>
+      <div class="col-6 col-lg-3" data-animate="fade-up" data-animate-delay="300"><div class="stat-item"><strong><span data-counter="20">0</span>+</strong><p>Especialidades</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section-space home-specialties" aria-labelledby="specialties-title">
+  <div class="container">
+    <header class="section-heading" data-animate="fade-up"><span class="section-heading__eyebrow">Atención integral</span><h2 id="specialties-title">Especialidades médicas</h2><p>Profesionales preparados para cuidar tu salud en cada etapa.</p></header>
+    <div class="row g-4">
+      <div class="col-md-4" data-animate="fade-up"><article class="medical-card"><span class="medical-card__icon"><i class="fa-solid fa-heart-pulse"></i></span><h3>Cardiología</h3><p>Diagnóstico, prevención y tratamiento cardiovascular.</p><a class="underline-animation" href="{% url 'pagina:especialidades' %}">Conocer especialidad <i class="fa-solid fa-arrow-right"></i></a></article></div>
+      <div class="col-md-4" data-animate="fade-up" data-animate-delay="120"><article class="medical-card"><span class="medical-card__icon"><i class="fa-solid fa-brain"></i></span><h3>Neurología</h3><p>Atención especializada para el cerebro y el sistema nervioso.</p><a class="underline-animation" href="{% url 'pagina:especialidades' %}">Conocer especialidad <i class="fa-solid fa-arrow-right"></i></a></article></div>
+      <div class="col-md-4" data-animate="fade-up" data-animate-delay="240"><article class="medical-card"><span class="medical-card__icon"><i class="fa-solid fa-tooth"></i></span><h3>Odontología</h3><p>Prevención y cuidado integral para una sonrisa saludable.</p><a class="underline-animation" href="{% url 'pagina:especialidades' %}">Conocer especialidad <i class="fa-solid fa-arrow-right"></i></a></article></div>
+    </div>
+  </div>
+</section>
+
+<section class="doctors section-space" aria-labelledby="doctors-title">
+  <div class="container">
+    <header class="section-heading" data-animate="fade-up"><span class="section-heading__eyebrow">Nuestro equipo</span><h2 id="doctors-title">Médicos que cuidan de ti</h2><p>Especialistas comprometidos con tu bienestar y una atención cercana.</p></header>
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-6 col-lg-4" data-animate="slide-right"><article class="doctor-card"><div class="doctor-card__photo" role="img" aria-label="Dr. Carlos Pérez, cardiólogo"><i class="fa-solid fa-user-doctor"></i></div><span class="doctor-card__label">Cardiología</span><h3>Dr. Carlos Pérez</h3><p>Especialista en prevención y salud cardiovascular.</p><a class="btn btn-primary" href="{% url 'citas:agendar' %}">Agendar cita</a></article></div>
+      <div class="col-md-6 col-lg-4" data-animate="slide-left" data-animate-delay="140"><article class="doctor-card"><div class="doctor-card__photo doctor-card__photo--alt" role="img" aria-label="Dra. María López, neuróloga"><i class="fa-solid fa-user-doctor"></i></div><span class="doctor-card__label">Neurología</span><h3>Dra. María López</h3><p>Experta en diagnóstico y cuidado neurológico integral.</p><a class="btn btn-primary" href="{% url 'citas:agendar' %}">Agendar cita</a></article></div>
+    </div>
+    <div class="text-center mt-5" data-animate="fade-up"><a href="{% url 'pagina:medicos' %}" class="btn btn-outline-primary btn-lg">Conocer a todo el equipo</a></div>
+  </div>
+</section>
+
+<section class="section-space home-services" aria-labelledby="services-title">
+  <div class="container">
+    <header class="section-heading" data-animate="fade-up"><span class="section-heading__eyebrow">Todo en un solo lugar</span><h2 id="services-title">Nuestros servicios</h2><p>Soluciones pensadas para ofrecerte una experiencia de salud ágil y completa.</p></header>
+    <div class="row g-4">
+      <div class="col-6 col-lg-3" data-animate="zoom-in"><a class="service-box" href="{% url 'pagina:servicios' %}"><i class="fa-solid fa-stethoscope"></i><span>Consulta médica</span></a></div>
+      <div class="col-6 col-lg-3" data-animate="zoom-in" data-animate-delay="100"><a class="service-box" href="{% url 'pagina:servicios' %}"><i class="fa-solid fa-flask-vial"></i><span>Laboratorio</span></a></div>
+      <div class="col-6 col-lg-3" data-animate="zoom-in" data-animate-delay="200"><a class="service-box" href="{% url 'pagina:servicios' %}"><i class="fa-solid fa-laptop-medical"></i><span>Telemedicina</span></a></div>
+      <div class="col-6 col-lg-3" data-animate="zoom-in" data-animate-delay="300"><a class="service-box" href="{% url 'pagina:servicios' %}"><i class="fa-solid fa-truck-medical"></i><span>Emergencias</span></a></div>
+    </div>
+  </div>
+</section>
+
+<section class="home-cta" data-animate="fade-up">
+  <div class="container"><div class="home-cta__inner"><div><span>Tu bienestar comienza hoy</span><h2>Agenda una consulta con nuestros especialistas</h2></div><a href="{% url 'citas:agendar' %}" class="btn btn-light btn-lg">Agendar mi cita <i class="fa-solid fa-arrow-right"></i></a></div></div>
+</section>
+{% endblock %}
+
+{% block js %}<script src="{% static 'js/home.js' %}"></script>{% endblock %}

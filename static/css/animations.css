@@ -1,0 +1,19 @@
+[data-animate] { opacity: 0; transition-property: opacity, transform; transition-duration: var(--animate-duration, 600ms); transition-delay: var(--animate-delay, 0ms); transition-timing-function: cubic-bezier(.2, .7, .2, 1); }
+[data-animate="fade-up"] { transform: translateY(28px); }
+[data-animate="fade-in"] { transform: none; }
+[data-animate="slide-left"] { transform: translateX(32px); }
+[data-animate="slide-right"] { transform: translateX(-32px); }
+[data-animate="zoom-in"] { transform: scale(.95); }
+[data-animate].is-visible { opacity: 1; transform: none; }
+.pulse-soft { animation: pulse-soft 2.4s ease-in-out infinite; }
+.float-soft { animation: float-soft 4s ease-in-out infinite; }
+.hover-lift, .hover-scale, .hover-shadow { transition: transform var(--transition-normal), box-shadow var(--transition-normal); }
+.hover-lift:hover { transform: translateY(-6px); }
+.hover-scale:hover { transform: scale(1.025); }
+.hover-shadow:hover { box-shadow: var(--shadow-md); }
+.underline-animation { position: relative; }
+.underline-animation::after { position: absolute; right: 0; bottom: -.2rem; left: 0; height: 2px; content: ""; background: currentColor; transform: scaleX(0); transform-origin: right; transition: transform var(--transition-normal); }
+.underline-animation:hover::after, .underline-animation:focus-visible::after { transform: scaleX(1); transform-origin: left; }
+@keyframes pulse-soft { 50% { transform: scale(1.04); opacity: .88; } }
+@keyframes float-soft { 50% { transform: translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { [data-animate] { opacity: 1; transform: none; } .pulse-soft, .float-soft { animation: none; } }

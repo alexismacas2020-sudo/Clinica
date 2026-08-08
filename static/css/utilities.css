@@ -1,0 +1,21 @@
+.section-space { padding-block: clamp(3.5rem, 7vw, 7rem); }
+.section-heading { max-width: 720px; margin-inline: auto; margin-bottom: clamp(2rem, 4vw, 3.5rem); text-align: center; }
+.section-heading__eyebrow { display: inline-block; margin-bottom: .7rem; color: var(--color-primary); font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.section-heading h2 { margin-bottom: .9rem; font-size: clamp(1.8rem, 3.5vw, 2.75rem); }
+.section-heading p { margin: 0; color: var(--color-muted); }
+.surface { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+.text-muted-clinic { color: var(--color-muted) !important; }
+.text-primary-clinic { color: var(--color-primary) !important; }
+.bg-soft-primary { background: var(--color-primary-soft) !important; }
+.bg-soft-success { background: var(--color-success-soft) !important; }
+.rounded-clinic { border-radius: var(--radius-md) !important; }
+.shadow-clinic { box-shadow: var(--shadow-md) !important; }
+.icon-circle { display: inline-grid; width: 3rem; height: 3rem; place-items: center; color: var(--color-primary); background: var(--color-primary-soft); border-radius: 50%; }
+.page-hero { overflow: hidden; padding-block: clamp(4rem, 8vw, 7rem); text-align: center; background: linear-gradient(135deg, #eef8fd, #f6fbf9); }
+.page-hero::before, .page-hero::after { position: absolute; content: ""; border-radius: 50%; pointer-events: none; }
+.page-hero::before { top: -8rem; right: -5rem; width: 20rem; height: 20rem; background: rgb(8 119 201 / 7%); }
+.page-hero::after { bottom: -7rem; left: -4rem; width: 16rem; height: 16rem; background: rgb(31 157 122 / 7%); }
+.page-hero .container { position: relative; z-index: 1; }
+.page-hero__eyebrow { display: inline-flex; gap: .5rem; align-items: center; padding: .45rem .85rem; margin-bottom: 1rem; color: var(--color-primary-dark); background: rgb(255 255 255 / 80%); border: 1px solid rgb(8 119 201 / 12%); border-radius: var(--radius-pill); font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.page-hero h1 { margin-bottom: 1rem; font-size: clamp(2.35rem, 5vw, 4rem); letter-spacing: -.04em; }
+.page-hero p { max-width: 700px; margin: 0 auto; color: var(--color-muted); font-size: clamp(1rem, 2vw, 1.2rem); }

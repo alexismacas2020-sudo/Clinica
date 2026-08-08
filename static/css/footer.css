@@ -1,0 +1,25 @@
+.clinic-footer { margin-top: clamp(3.5rem, 7vw, 7rem); color: #d9e2ec; background: #0b2239; }
+.clinic-footer__main { padding-block: clamp(3rem, 6vw, 5rem); }
+.clinic-footer__brand { display: inline-flex; gap: .65rem; align-items: center; margin-bottom: 1rem; color: #fff; font-size: 1.35rem; font-weight: 800; }
+.clinic-footer__brand i { color: #58c9b1; }
+.clinic-footer__brand:hover { color: #fff; }
+.clinic-footer__intro { max-width: 360px; color: #9fb3c8; }
+.clinic-footer__title { margin-bottom: 1.15rem; color: #fff; font-size: .9rem; letter-spacing: .08em; text-transform: uppercase; }
+.clinic-footer__links { padding: 0; margin: 0; list-style: none; }
+.clinic-footer__links li + li { margin-top: .65rem; }
+.clinic-footer a:not(.clinic-footer__brand) { color: #bcccdc; }
+.clinic-footer a:hover { color: #58c9b1; }
+.clinic-footer__social { display: flex; gap: .65rem; margin-top: 1.25rem; }
+.clinic-footer__social a { display: grid; width: 2.4rem; height: 2.4rem; place-items: center; border: 1px solid rgb(255 255 255 / 14%); border-radius: 50%; transition: background var(--transition-fast), transform var(--transition-fast); }
+.clinic-footer__social a:hover { background: rgb(255 255 255 / 8%); transform: translateY(-2px); }
+.clinic-footer__contact { font-style: normal; }
+.clinic-footer__contact p { display: flex; gap: .75rem; align-items: flex-start; margin-bottom: .8rem; color: #bcccdc; }
+.clinic-footer__contact i { width: 1rem; margin-top: .35rem; color: #58c9b1; text-align: center; }
+.clinic-footer__schedule { margin: 0; }
+.clinic-footer__schedule div { display: flex; justify-content: space-between; gap: 1rem; padding-block: .55rem; border-bottom: 1px solid rgb(255 255 255 / 9%); }
+.clinic-footer__schedule dt { font-weight: 500; }
+.clinic-footer__schedule dd { margin: 0; color: #fff; }
+.clinic-footer__bottom { padding-block: 1.1rem; background: rgb(0 0 0 / 16%); }
+.clinic-footer__bottom p { margin: 0; color: #9fb3c8; font-size: .86rem; }
+.back-to-top { display: grid; width: 2.4rem; height: 2.4rem; place-items: center; color: #fff; background: var(--color-primary); border: 0; border-radius: 50%; opacity: 0; pointer-events: none; transform: translateY(6px); transition: opacity var(--transition-fast), transform var(--transition-fast); }
+.back-to-top.is-visible { opacity: 1; pointer-events: auto; transform: none; }

@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% load static crispy_forms_tags %}
+{% block title %}Mi perfil | Clínica Reina{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/usuarios.css' %}">{% endblock %}
+{% block content %}<section class="auth-section py-5"><div class="container"><div class="row justify-content-center"><div class="col-lg-7"><div class="card auth-card border-0 shadow-sm"><div class="card-body p-4 p-md-5"><h1 class="h3 mb-1">Mi perfil</h1><p class="text-muted mb-4">Rol asignado: {{ perfil.get_rol_display }}.</p><form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}{{ form|crispy }}<button class="btn btn-primary" type="submit">Guardar cambios</button><a class="btn btn-outline-secondary" href="{% url 'usuarios:panel' %}">Volver al panel</a></form></div></div></div></div></div></section>{% endblock %}
