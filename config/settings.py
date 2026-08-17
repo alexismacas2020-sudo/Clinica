@@ -25,7 +25,18 @@ SECRET_KEY = "django-insecure-p9*zjlg2!x_e)54xka+3tqon(+3k&1%kglt-uge#o*qvjpkswl
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+ 
+    "localhost",
+    "127.0.0.1",
+    "[::1]",
+    "clinica-hhvc.onrender.com",
+    ".ngrok-free.app",
+    ".ngrok-free.dev",
+    ".ngrok.app",
+    ".ngrok.io",
+
+]
 
 
 # Application definition
