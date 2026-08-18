@@ -1,31 +1,36 @@
 from .base import *
 
 
+# =====================================================
+# CONFIGURACIÓN DE PRODUCCIÓN
+# =====================================================
+
 DEBUG = False
 
 
+# =====================================================
+# HOSTS PERMITIDOS
+# =====================================================
+
 ALLOWED_HOSTS = [
+    "clinica-hhvc.onrender.com",
     "localhost",
     "127.0.0.1",
-    "[::1]",
-    "clinica-hhvc.onrender.com",
-    ".onrender.com",
-    ".ngrok-free.app",
-    ".ngrok-free.dev",
-    ".ngrok.app",
-    ".ngrok.io",
 ]
 
+
+# =====================================================
+# CSRF - DOMINIOS CONFIABLES
+# =====================================================
 
 CSRF_TRUSTED_ORIGINS = [
     "https://clinica-hhvc.onrender.com",
-    "https://*.onrender.com",
-    "https://*.ngrok-free.app",
-    "https://*.ngrok-free.dev",
-    "https://*.ngrok.app",
-    "https://*.ngrok.io",
 ]
 
+
+# =====================================================
+# CONFIGURACIÓN HTTPS PARA RENDER
+# =====================================================
 
 SECURE_PROXY_SSL_HEADER = (
     "HTTP_X_FORWARDED_PROTO",
@@ -34,9 +39,18 @@ SECURE_PROXY_SSL_HEADER = (
 
 USE_X_FORWARDED_HOST = True
 
+
+# =====================================================
+# COOKIES SEGURAS
+# =====================================================
+
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
+
+# =====================================================
+# TEMPLATES
+# =====================================================
 
 TEMPLATES = [
     {
