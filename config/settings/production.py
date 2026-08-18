@@ -1,9 +1,8 @@
 from .base import *
 
 
-# Configuracion segura para Render. Estos valores se pueden reemplazar desde
-# las variables de entorno sin tener que modificar el codigo.
-DEBUG = env.bool("DEBUG", default=False)
+# Nunca se debe mostrar la pagina de depuracion en produccion.
+DEBUG = False
 
 # Render recibe la cadena de conexion de Supabase mediante DATABASE_URL.
 # No se usa SQLite en produccion porque el sistema de archivos de Render
@@ -16,15 +15,17 @@ DATABASES["default"].setdefault("OPTIONS", {})["sslmode"] = env(
     default="require",
 )
 
-ALLOWED_HOSTS = env.list(
-    "ALLOWED_HOSTS",
-    default=["clinica-hhvc.onrender.com"],
-)
+ALLOWED_HOSTS = list(dict.fromkeys([
+    "clinica-hhvc.onrender.com",
+    "localhost",
+    "127.0.0.1",
+    *env.list("ALLOWED_HOSTS", default=[]),
+]))
 
-CSRF_TRUSTED_ORIGINS = env.list(
-    "CSRF_TRUSTED_ORIGINS",
-    default=["https://clinica-hhvc.onrender.com"],
-)
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys([
+    "https://clinica-hhvc.onrender.com",
+    *env.list("CSRF_TRUSTED_ORIGINS", default=[]),
+]))
 
 # Render termina HTTPS en su proxy y envia este encabezado a Django.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
