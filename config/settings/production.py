@@ -5,6 +5,17 @@ from .base import *
 # las variables de entorno sin tener que modificar el codigo.
 DEBUG = env.bool("DEBUG", default=False)
 
+# Render recibe la cadena de conexion de Supabase mediante DATABASE_URL.
+# No se usa SQLite en produccion porque el sistema de archivos de Render
+# es efimero y la base se perderia al reiniciar o volver a desplegar.
+DATABASES = {
+    "default": env.db("DATABASE_URL"),
+}
+DATABASES["default"].setdefault("OPTIONS", {})["sslmode"] = env(
+    "DATABASE_SSLMODE",
+    default="require",
+)
+
 ALLOWED_HOSTS = env.list(
     "ALLOWED_HOSTS",
     default=["clinica-hhvc.onrender.com"],
