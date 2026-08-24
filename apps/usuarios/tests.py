@@ -79,6 +79,12 @@ class UsuariosViewsTests(TestCase):
     def test_navbar_funciona_sin_google_configurado(self):
         self.assertEqual(self.client.get(reverse("pagina:inicio")).status_code, 200)
 
+    def test_login_muestra_acceso_con_google(self):
+        self.assertContains(self.client.get(reverse("usuarios:login")), "Continuar con Google")
+
+    def test_registro_muestra_acceso_con_google(self):
+        self.assertContains(self.client.get(reverse("usuarios:registro")), "Continuar con Google")
+
     def test_admin_crea_credenciales_de_recepcionista(self):
         admin = get_user_model().objects.create_superuser(username="admin2", email="admin2@example.com", password=self.password)
         self.client.force_login(admin)

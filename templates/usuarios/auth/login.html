@@ -6,10 +6,12 @@
   <form method="post" novalidate data-auth-form>{% csrf_token %}{{ form.non_field_errors }}
     {{ form.username|as_crispy_field }}
     <div class="password-wrap">{{ form.password|as_crispy_field }}<button type="button" data-password-toggle aria-label="Mostrar contraseña"><i class="fa-regular fa-eye"></i></button></div>
-    {% if google_login_disponible %}<div class="login-divider"><span>o</span></div><button class="btn login-google" type="submit" formaction="{% provider_login_url 'google' process='login' %}" formnovalidate><i class="fa-brands fa-google"></i>Continuar con Google</button><p class="google-account-note"><i class="fa-solid fa-circle-check"></i> Google te pedirá elegir y confirmar la cuenta que deseas usar.</p>{% endif %}
     <div class="login-options">{{ form.recordarme|as_crispy_field }}<a href="{% url 'usuarios:password_reset' %}">¿Olvidaste tu contraseña?</a></div>
     <button class="btn btn-primary login-submit" type="submit" data-loading-text="Verificando acceso…">Iniciar sesión</button>
   </form>
+  <div class="login-divider"><span>o continúa con</span></div>
+  <form method="post" action="{% url 'google_login' %}">{% csrf_token %}<button class="btn login-google" type="submit"><i class="fa-brands fa-google"></i>Continuar con Google</button></form>
+  <p class="google-account-note"><i class="fa-solid fa-circle-check"></i> Google te pedirá elegir y confirmar la cuenta que deseas usar.</p>
   <p class="login-register">¿Aún no tienes cuenta? <a href="{% url 'usuarios:registro' %}">Crear cuenta</a></p>
 </div></section>{% endblock %}
 {% block js %}<script src="{% static 'js/login.js' %}"></script>{% endblock %}
