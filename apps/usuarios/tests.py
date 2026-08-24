@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from unittest.mock import patch
 import re
@@ -79,9 +79,11 @@ class UsuariosViewsTests(TestCase):
     def test_navbar_funciona_sin_google_configurado(self):
         self.assertEqual(self.client.get(reverse("pagina:inicio")).status_code, 200)
 
+    @override_settings(GOOGLE_OAUTH_CLIENT_ID="cliente-prueba", GOOGLE_OAUTH_CLIENT_SECRET="secreto-prueba")
     def test_login_muestra_acceso_con_google(self):
         self.assertContains(self.client.get(reverse("usuarios:login")), "Continuar con Google")
 
+    @override_settings(GOOGLE_OAUTH_CLIENT_ID="cliente-prueba", GOOGLE_OAUTH_CLIENT_SECRET="secreto-prueba")
     def test_registro_muestra_acceso_con_google(self):
         self.assertContains(self.client.get(reverse("usuarios:registro")), "Continuar con Google")
 
