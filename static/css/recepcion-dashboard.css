@@ -1,0 +1,38 @@
+/* Panel operativo de recepción */
+.reception-dashboard { min-height: 75vh; background: transparent; }
+.reception-hero { display: flex; gap: 1.5rem; align-items: center; justify-content: space-between; padding: clamp(1.4rem, 3vw, 2rem); color: #fff; background: linear-gradient(125deg, #0b3b53, #087d8b 65%, #14a99c); border-radius: 1.2rem; box-shadow: 0 22px 55px rgb(7 71 128 / 20%); }
+.reception-hero__eyebrow { margin: 0 0 .35rem; color: #c7fff5; font-size: .68rem; font-weight: 800; letter-spacing: .12em; }
+.reception-hero h1 { margin: 0 0 .35rem; color: #fff; font-size: clamp(1.55rem, 3vw, 2rem); }
+.reception-hero p:last-child { margin: 0; color: rgb(255 255 255 / 80%); }
+.reception-hero__actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+.reception-hero__actions .btn { border-radius: 999px; }
+.reception-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin: 1.25rem 0; }
+.reception-stats article { display: flex; min-width: 0; gap: .8rem; align-items: center; padding: 1rem; background: #fff; border: 1px solid #dbe8ee; border-radius: 1rem; box-shadow: 0 7px 20px rgb(8 82 145 / 8%); }
+.reception-stats i { display: grid; flex: 0 0 2.65rem; height: 2.65rem; place-items: center; color: #087d8b; background: #e3f6f4; border-radius: .7rem; }
+.reception-stats span, .reception-stats strong, .reception-stats small { display: block; }
+.reception-stats span { color: #597383; font-size: .72rem; }
+.reception-stats strong { color: #102a43; font-size: 1.45rem; line-height: 1.2; }
+.reception-stats small { color: #7b8e99; font-size: .64rem; }
+.reception-section { overflow: hidden; margin-bottom: 1.25rem; background: #fff; border: 1px solid #dbe8ee; border-radius: 1.1rem; box-shadow: 0 12px 32px rgb(8 82 145 / 9%); }
+.reception-section > header { display: flex; gap: 1rem; align-items: center; justify-content: space-between; padding: 1rem 1.2rem; background: linear-gradient(145deg, #fff, #f4fafb); border-bottom: 1px solid #e2ecef; }
+.reception-section > header h2 { margin: 0; font-size: 1.1rem; }
+.reception-section > header p { margin: .15rem 0 0; color: #718794; font-size: .72rem; }
+.queue-count { display: inline-flex; gap: .4rem; align-items: center; padding: .35rem .65rem; color: #805800; background: #fff2cf; border-radius: 999px; font-size: .7rem; font-weight: 800; }
+.reception-table td { padding: .9rem 1rem; }
+.patient-cell strong, .patient-cell small, .attention-cell strong, .attention-cell small { display: block; }
+.patient-cell small, .attention-cell small { color: #718794; font-size: .7rem; }
+.appointment-date { display: grid; min-width: 4.6rem; }
+.appointment-date strong { color: #16384c; }
+.appointment-date small { color: #087d8b; font-weight: 750; }
+.reception-actions { display: flex; flex-wrap: wrap; gap: .4rem; min-width: 19rem; }
+.reception-actions form { margin: 0; }
+.reception-actions .btn { min-height: 2.15rem; padding: .35rem .65rem; font-size: .7rem; border-radius: .6rem; }
+.payment-quick { display: grid; gap: .2rem; }
+.payment-quick strong { font-size: .77rem; }
+.payment-quick small { color: #718794; }
+.empty-reception { padding: 2.5rem 1rem !important; color: #718794; text-align: center; }
+.empty-reception i, .empty-reception strong, .empty-reception span { display: block; }
+.empty-reception i { margin-bottom: .5rem; color: #8ac4c2; font-size: 2rem; }
+.empty-reception strong { color: #29485b; }
+@media (max-width: 991.98px) { .reception-stats { grid-template-columns: repeat(2, 1fr); } .reception-hero { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 575.98px) { .reception-stats { grid-template-columns: 1fr; } .reception-hero__actions, .reception-hero__actions .btn { width: 100%; } .reception-section > header { align-items: flex-start; flex-direction: column; } }

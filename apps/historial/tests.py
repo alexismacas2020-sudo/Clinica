@@ -4,6 +4,7 @@ from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
 
@@ -13,7 +14,7 @@ from apps.medicos.models import Medico
 from apps.recetas.models import Receta
 from apps.usuarios.models import Perfil
 
-from .models import HistorialClinico
+from .models import ArchivoHistorial, HistorialClinico
 
 
 MEDIA_TEMP = tempfile.mkdtemp()
@@ -97,3 +98,27 @@ class AtencionMedicaTests(TestCase):
         self.assertEqual(self.client.get(reverse("historial:detalle_historial", args=[historial.pk])).status_code, 200)
         self.client.force_login(self.otro_medico_user)
         self.assertEqual(self.client.get(reverse("historial:detalle_historial", args=[historial.pk])).status_code, 404)
+
+    def test_medico_agrega_radiografia_al_historial(self):
+        self.client.force_login(self.usuario_medico)
+        self.client.post(reverse("historial:atender_cita", args=[self.cita.pk]), self.data)
+        historial = HistorialClinico.objects.get(cita=self.cita)
+        radiografia = SimpleUploadedFile("radiografia.pdf", b"%PDF-1.4 estudio", content_type="application/pdf")
+        respuesta = self.client.post(reverse("historial:detalle_historial", args=[historial.pk]), {
+            "tipo": "RADIOGRAFIA", "descripcion": "Radiografía de tórax", "archivo": radiografia,
+        })
+        self.assertRedirects(respuesta, reverse("historial:detalle_historial", args=[historial.pk]))
+        adjunto = ArchivoHistorial.objects.get(historial=historial)
+        self.assertEqual(adjunto.tipo, "RADIOGRAFIA")
+        self.assertEqual(adjunto.subido_por, self.usuario_medico)
+
+    def test_otro_medico_no_puede_eliminar_archivo(self):
+        historial = HistorialClinico.objects.create(
+            cita=self.cita, medico=self.medico, paciente=self.paciente,
+            motivo_consulta="Control", diagnostico="Estudio", tratamiento="Seguimiento", finalizado=True,
+        )
+        adjunto = ArchivoHistorial.objects.create(
+            historial=historial, tipo="OTRO", archivo="historial/archivos/documento.pdf", subido_por=self.usuario_medico,
+        )
+        self.client.force_login(self.otro_medico_user)
+        self.assertEqual(self.client.post(reverse("historial:eliminar_archivo", args=[adjunto.pk])).status_code, 404)

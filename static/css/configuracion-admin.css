@@ -1,0 +1,29 @@
+/* Administración de información pública y alertas */
+.config-admin { min-height: 72vh; background: transparent; }
+.config-admin__hero { position: relative; display: flex; gap: 2rem; align-items: center; justify-content: space-between; overflow: hidden; padding: clamp(1.5rem, 4vw, 2.25rem); color: #fff; background: linear-gradient(125deg, #0b3b53 0%, #087d8b 60%, #16b8a7 100%); border-radius: 1.25rem; box-shadow: 0 24px 60px rgb(7 71 128 / 20%); }
+.config-admin__hero::after { position: absolute; right: -4rem; bottom: -8rem; width: 20rem; height: 20rem; content: ""; background: rgb(255 255 255 / 8%); border-radius: 50%; }
+.config-admin__hero > * { position: relative; z-index: 1; }
+.config-admin__eyebrow { display: flex; gap: .5rem; align-items: center; margin: 0 0 .5rem; color: #c9fff5; font-size: .7rem; font-weight: 800; letter-spacing: .12em; }
+.config-admin__hero h1 { margin: 0 0 .5rem; color: #fff; font-size: clamp(1.65rem, 3vw, 2.25rem); }
+.config-admin__hero p:last-child { max-width: 42rem; margin: 0; color: rgb(255 255 255 / 82%); }
+.config-admin__hero .btn { flex: 0 0 auto; border-radius: 999px; }
+.config-admin__layout { align-items: flex-start; margin-top: 1.5rem; }
+.config-panel { overflow: hidden; border: 1px solid #d9e8ef !important; border-radius: 1.15rem; box-shadow: 0 14px 36px rgb(8 82 145 / 11%); }
+.config-panel > header { display: flex; gap: .8rem; align-items: center; padding: 1.15rem 1.35rem; background: linear-gradient(145deg, #fff, #f3f9fb); border-bottom: 1px solid #e1ebef; }
+.config-panel > header i { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; color: #087d8b; background: #e2f6f3; border-radius: .7rem; }
+.config-panel > header h2 { margin: 0; font-size: 1.15rem; }
+.config-panel > header small { display: block; margin-top: .15rem; color: #728794; }
+.config-panel__body { padding: clamp(1.25rem, 3vw, 1.75rem); }
+.config-panel .form-label { color: #29485b; font-weight: 750; }
+.config-panel textarea { min-height: 8rem; resize: vertical; }
+.config-panel .form-check { padding: .8rem 1rem .8rem 2.6rem; background: #f4f9fa; border: 1px solid #dce9ed; border-radius: .8rem; }
+.config-panel .form-check-input { width: 1.15rem; height: 1.15rem; margin-left: -1.7rem; accent-color: #087d8b; }
+.emergency-admin-preview { padding: 1.25rem; color: #671515; background: linear-gradient(145deg, #fff8f8, #fff1f1); border: 1px solid #efc5c8; border-left: 5px solid #c83e4d; border-radius: 1rem; box-shadow: 0 10px 25px rgb(152 38 49 / 9%); }
+.emergency-admin-preview__top { display: flex; gap: .8rem; align-items: flex-start; }
+.emergency-admin-preview__icon { display: grid; flex: 0 0 2.8rem; height: 2.8rem; place-items: center; color: #fff; background: linear-gradient(145deg, #e14855, #b82331); border-radius: .75rem; box-shadow: 0 8px 18px rgb(184 35 49 / 20%); }
+.emergency-admin-preview strong { display: block; color: #7e1d27; }
+.emergency-admin-preview p { margin: .3rem 0 .8rem; color: #715459; font-size: .88rem; }
+.emergency-admin-preview a { display: inline-flex; gap: .45rem; align-items: center; color: #a52331; font-weight: 800; }
+.config-status { display: flex; gap: .6rem; align-items: center; padding: .85rem 1rem; margin-top: 1rem; color: #58717f; background: #f5f9fa; border-radius: .8rem; font-size: .78rem; }
+.config-status i { color: #087d8b; }
+@media (max-width: 767.98px) { .config-admin__hero { align-items: flex-start; flex-direction: column; } .config-admin__hero .btn { width: 100%; } }

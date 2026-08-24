@@ -8,6 +8,7 @@ from django.utils import timezone
 from apps.historial.models import HistorialClinico
 from apps.medicos.models import Medico
 from apps.usuarios.decorators import solo_medico
+from apps.usuarios.services.email_service import EmailError, enviar_correo
 
 from apps.usuarios.models import Perfil
 from .models import Receta
@@ -40,6 +41,18 @@ def emitir(request, historial_pk):
         receta.save()
         url = request.build_absolute_uri(reverse("recetas:verificar", args=[receta.codigo_verificacion]))
         generar_pdf_receta(receta, url)
+        if receta.paciente.email and receta.pdf:
+            try:
+                with receta.pdf.open("rb") as archivo:
+                    contenido_pdf = archivo.read()
+                enviar_correo(
+                    receta.paciente.email,
+                    "Nuevo documento disponible en tu portal",
+                    "Se emitió una nueva receta médica después de tu consulta. También puedes descargarla de forma segura desde tu portal de Clínica Reina.",
+                    [(f"receta-{receta.pk}.pdf", contenido_pdf, "application/pdf")],
+                )
+            except (EmailError, OSError):
+                messages.warning(request, "La receta fue guardada, pero no fue posible enviarla por correo.")
         messages.success(request, "Receta guardada y PDF generado correctamente.")
         return redirect("historial:detalle_historial", pk=historial.pk)
     return render(request, "recetas/emitir.html", {"form": form, "historial": historial})

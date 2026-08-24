@@ -40,6 +40,12 @@ urlpatterns = [
         name="servicios"
     ),
 
+    path(
+        "precios/",
+        views.precios,
+        name="precios"
+    ),
+
 
     path(
         "contacto/",

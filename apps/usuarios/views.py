@@ -1,20 +1,24 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetView
+from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.hashers import check_password, make_password
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from datetime import timedelta
+import secrets
 
 from apps.citas.models import Cita
 from apps.especialidades.models import Especialidad
 from apps.medicos.models import Medico
 
 from .decorators import solo_administrador, usuario_con_perfil_activo
-from .forms import AdminUsuarioForm, CrearMedicoForm, CrearRecepcionistaForm, InicioSesionForm, PerfilForm, RegistroUsuarioForm
-from .models import Perfil
+from .forms import AdminUsuarioForm, CrearMedicoForm, CrearRecepcionistaForm, InicioSesionForm, PerfilForm, RegistroUsuarioForm, SolicitarCodigoForm, VerificarCodigoForm
+from .models import CodigoRecuperacion, Perfil
+from .services.email_service import EmailError, enviar_correo
 
 
 def destino_por_rol(usuario):
@@ -48,10 +52,64 @@ class LogoutUsuarioView(LogoutView):
     next_page = reverse_lazy("pagina:inicio")
 
 
-class RecuperarContrasenaView(PasswordResetView):
-    template_name = "usuarios/password_reset.html"
-    email_template_name = "usuarios/password_reset_email.txt"
-    success_url = reverse_lazy("usuarios:login")
+def recuperar_contrasena(request):
+    form = SolicitarCodigoForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        email = form.cleaned_data["email"].strip().lower()
+        perfil = Perfil.objects.select_related("usuario").filter(usuario__email__iexact=email, activo=True, usuario__is_active=True).first()
+        if perfil:
+            reciente = CodigoRecuperacion.objects.filter(usuario=perfil.usuario, creado_en__gte=timezone.now() - timedelta(seconds=60)).exists()
+            if reciente:
+                form.add_error(None, "Espera un minuto antes de solicitar otro código.")
+                return render(request, "usuarios/password_reset.html", {"form": form})
+            codigo = f"{secrets.randbelow(1_000_000):06d}"
+            registro = CodigoRecuperacion.objects.create(usuario=perfil.usuario, codigo_hash=make_password(codigo), expira_en=timezone.now() + timedelta(minutes=10))
+            try:
+                enviar_correo(email, "Código para cambiar tu contraseña", f"Tu código de recuperación es {codigo}.\n\nVence en 10 minutos. Si no solicitaste este cambio, ignora este correo.")
+            except EmailError as exc:
+                registro.delete()
+                form.add_error(None, str(exc))
+                return render(request, "usuarios/password_reset.html", {"form": form})
+            request.session["recuperacion_codigo_id"] = registro.pk
+        messages.success(request, "Si el correo está registrado, recibirás un código de recuperación.")
+        return redirect("usuarios:password_reset_verify")
+    return render(request, "usuarios/password_reset.html", {"form": form})
+
+
+def verificar_codigo(request):
+    registro = CodigoRecuperacion.objects.select_related("usuario").filter(pk=request.session.get("recuperacion_codigo_id")).first()
+    if not registro:
+        messages.error(request, "Solicita un nuevo código para continuar.")
+        return redirect("usuarios:password_reset")
+    form = VerificarCodigoForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        if not registro.vigente:
+            form.add_error(None, "El código venció o alcanzó el límite de intentos.")
+        elif check_password(form.cleaned_data["codigo"], registro.codigo_hash):
+            request.session["recuperacion_usuario_id"] = registro.usuario_id
+            request.session["recuperacion_verificada"] = True
+            return redirect("usuarios:password_reset_change")
+        else:
+            registro.intentos += 1
+            registro.save(update_fields=["intentos"])
+            form.add_error("codigo", "El código es incorrecto.")
+    return render(request, "usuarios/password_reset_verify.html", {"form": form})
+
+
+def cambiar_contrasena_email(request):
+    usuario_id = request.session.get("recuperacion_usuario_id")
+    if not request.session.get("recuperacion_verificada") or not usuario_id:
+        return redirect("usuarios:password_reset")
+    usuario = get_object_or_404(get_user_model(), pk=usuario_id, is_active=True)
+    form = SetPasswordForm(usuario, request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        CodigoRecuperacion.objects.filter(pk=request.session.get("recuperacion_codigo_id")).update(usado_en=timezone.now())
+        for clave in ("recuperacion_codigo_id", "recuperacion_usuario_id", "recuperacion_verificada"):
+            request.session.pop(clave, None)
+        messages.success(request, "Tu contraseña fue cambiada. Ya puedes iniciar sesión.")
+        return redirect("usuarios:login")
+    return render(request, "usuarios/password_reset_change.html", {"form": form})
 
 
 def registro(request):

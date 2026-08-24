@@ -4,14 +4,18 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect
 from django.http import JsonResponse
+from django.core.exceptions import ValidationError
+from django.db.models.deletion import ProtectedError
 from datetime import datetime, timedelta
 from django.utils import timezone
 
 from apps.medicos.models import Medico
-from apps.usuarios.decorators import administrador_o_recepcionista, solo_paciente, usuario_con_perfil_activo
+from apps.usuarios.decorators import administrador_o_recepcionista, solo_administrador, solo_paciente, usuario_con_perfil_activo
 
-from .forms import AgendarCitaForm, CitaRecepcionForm
-from .models import Cita
+from .forms import AgendarCitaForm, BancoForm, CitaRecepcionForm, ComprobantePagoForm, RevisarPagoForm
+from .models import Banco, Cita
+from .services.email_service import enviar_estado, enviar_estado_pago
+from apps.usuarios.services.email_service import EmailError
 
 
 def _horarios_libres(medico, fecha, excluir=None):
@@ -79,38 +83,51 @@ def agendar(request):
             "especialidad": request.GET.get("especialidad"),
             "medico": request.GET.get("medico"),
         }
-    form = AgendarCitaForm(request.POST or None, initial=initial)
+    form = AgendarCitaForm(request.POST or None, request.FILES or None, initial=initial)
     if request.method == "POST" and form.is_valid():
         cita = form.save(commit=False)
         cita.paciente = request.user
         cita.full_clean()
         cita.save()
+        try:
+            enviar_estado(cita)
+        except EmailError:
+            messages.warning(request, "La cita se registró, pero no fue posible enviar el correo.")
+        if cita.metodo_pago == Cita.TRANSFERENCIA:
+            try:
+                enviar_estado_pago(cita)
+            except EmailError:
+                messages.warning(request, "No fue posible enviar el aviso del pago por correo.")
         messages.success(request, "Tu cita fue registrada y está pendiente de confirmación.")
         return redirect("citas:mis_citas")
-    return render(request, "citas/agendar.html", {"form": form})
+    return render(request, "citas/agendar.html", {"form": form, "bancos": Banco.objects.filter(activo=True)})
 
 
 @solo_paciente
 def mis_citas(request):
-    citas = Cita.objects.filter(paciente=request.user).select_related("medico", "especialidad")
+    citas = Cita.objects.filter(paciente=request.user).select_related("medico", "especialidad", "banco")
     return render(request, "citas/mis_citas.html", {"citas": citas})
 
 
 @administrador_o_recepcionista
 def recepcion_crear(request):
-    form = CitaRecepcionForm(request.POST or None)
+    form = CitaRecepcionForm(request.POST or None, request.FILES or None)
     if request.method == "POST" and form.is_valid():
         cita = form.save()
+        try:
+            enviar_estado(cita)
+        except EmailError:
+            messages.warning(request, "La cita se creó, pero no fue posible enviar el correo.")
         messages.success(request, f"Cita creada para {cita.paciente.get_full_name() or cita.paciente.username}.")
         return redirect("dashboard:recepcionista" if request.user.perfil.rol == "RECEPCIONISTA" else "dashboard:admin")
-    return render(request, "citas/recepcion_form.html", {"form": form, "titulo": "Registrar cita"})
+    return render(request, "citas/recepcion_form.html", {"form": form, "titulo": "Registrar cita", "bancos": Banco.objects.filter(activo=True)})
 
 
 @administrador_o_recepcionista
 def recepcion_editar(request, pk):
     cita = get_object_or_404(Cita, pk=pk)
     agenda_anterior = (cita.medico_id, cita.fecha, cita.hora)
-    form = CitaRecepcionForm(request.POST or None, instance=cita)
+    form = CitaRecepcionForm(request.POST or None, request.FILES or None, instance=cita)
     if request.method == "POST" and form.is_valid():
         cita = form.save(commit=False)
         agenda_nueva = (cita.medico_id, cita.fecha, cita.hora)
@@ -120,9 +137,14 @@ def recepcion_editar(request, pk):
         else:
             mensaje = "Los datos de la cita fueron actualizados."
         cita.save()
+        if agenda_nueva != agenda_anterior:
+            try:
+                enviar_estado(cita)
+            except EmailError:
+                messages.warning(request, "La cita se reagendó, pero no fue posible enviar el correo.")
         messages.success(request, mensaje)
         return redirect("dashboard:recepcionista")
-    return render(request, "citas/recepcion_form.html", {"form": form, "titulo": "Reprogramar cita", "cita": cita})
+    return render(request, "citas/recepcion_form.html", {"form": form, "titulo": "Reprogramar cita", "cita": cita, "bancos": Banco.objects.filter(activo=True)})
 
 
 @administrador_o_recepcionista
@@ -153,7 +175,110 @@ def cambiar_estado(request, pk, estado):
     if estado not in estados_permitidos:
         messages.error(request, "El estado solicitado no es válido.")
     else:
+        estado_anterior = cita.estado
         cita.estado = estado
         cita.save(update_fields=["estado"])
-        messages.success(request, f"La cita quedó {cita.get_estado_display().lower()}.")
+        if estado == Cita.CONFIRMADA and estado_anterior != Cita.CONFIRMADA and not cita.confirmacion_email_enviada:
+            try:
+                if not cita.paciente.email:
+                    raise EmailError("El paciente no tiene correo electrónico registrado.")
+                enviar_estado(cita, estado_anterior)
+                cita.confirmacion_email_enviada = True
+                cita.fecha_confirmacion_email = timezone.now()
+                cita.error_confirmacion_email = ""
+                cita.save(update_fields=["confirmacion_email_enviada", "fecha_confirmacion_email", "error_confirmacion_email"])
+                messages.success(request, "La cita quedó confirmada y el paciente recibió un correo.")
+            except (EmailError, ValidationError) as exc:
+                cita.error_confirmacion_email = str(exc)[:1000]
+                cita.save(update_fields=["error_confirmacion_email"])
+                messages.warning(request, "La cita quedó confirmada, pero no fue posible enviar el correo al paciente.")
+        else:
+            if estado == Cita.CANCELADA and estado_anterior != Cita.CANCELADA:
+                try:
+                    enviar_estado(cita, estado_anterior)
+                except EmailError:
+                    messages.warning(request, "La cita quedó cancelada, pero no fue posible enviar el correo.")
+            messages.success(request, f"La cita quedó {cita.get_estado_display().lower()}.")
     return redirect("dashboard:recepcionista")
+
+
+@solo_paciente
+def subir_comprobante(request, pk):
+    cita = get_object_or_404(Cita, pk=pk, paciente=request.user, metodo_pago=Cita.TRANSFERENCIA)
+    if cita.estado_pago == Cita.APROBADO:
+        messages.info(request, "Este pago ya fue aprobado.")
+        return redirect("citas:mis_citas")
+    form = ComprobantePagoForm(request.POST or None, request.FILES or None, instance=cita)
+    if request.method == "POST" and form.is_valid():
+        cita = form.save(commit=False)
+        cita.estado_pago = Cita.EN_REVISION
+        cita.observacion_pago = ""
+        cita.pago_revisado_en = None
+        cita.pago_revisado_por = None
+        cita.save()
+        try:
+            enviar_estado_pago(cita)
+        except EmailError:
+            messages.warning(request, "El comprobante fue recibido, pero no se pudo enviar el correo.")
+        messages.success(request, "Comprobante enviado para revisión.")
+        return redirect("citas:mis_citas")
+    return render(request, "citas/subir_comprobante.html", {"form": form, "cita": cita})
+
+
+@administrador_o_recepcionista
+def revisar_pago(request, pk):
+    cita = get_object_or_404(Cita.objects.select_related("paciente", "banco"), pk=pk, metodo_pago=Cita.TRANSFERENCIA)
+    if not cita.comprobante_pago:
+        messages.error(request, "No se puede revisar un pago sin comprobante.")
+        destino = "dashboard:admin" if request.user.is_superuser or request.user.perfil.es_administrador else "dashboard:recepcionista"
+        return redirect(destino)
+    form = RevisarPagoForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        cita.estado_pago = form.cleaned_data["decision"]
+        cita.observacion_pago = form.cleaned_data["observacion"].strip()
+        cita.pago_revisado_en = timezone.now()
+        cita.pago_revisado_por = request.user
+        cita.save(update_fields=["estado_pago", "observacion_pago", "pago_revisado_en", "pago_revisado_por"])
+        try:
+            enviar_estado_pago(cita)
+        except EmailError:
+            messages.warning(request, "El pago fue revisado, pero no se pudo enviar el correo.")
+        messages.success(request, f"El pago quedó {cita.get_estado_pago_display().lower()}.")
+        destino = "dashboard:admin" if request.user.is_superuser or request.user.perfil.es_administrador else "dashboard:recepcionista"
+        return redirect(destino)
+    return render(request, "citas/revisar_pago.html", {"form": form, "cita": cita})
+
+
+@solo_administrador
+def administrar_bancos(request):
+    form = BancoForm(request.POST or None, request.FILES or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Cuenta bancaria guardada.")
+        return redirect("citas:administrar_bancos")
+    return render(request, "citas/bancos.html", {"form": form, "bancos": Banco.objects.all()})
+
+
+@solo_administrador
+def editar_banco(request, pk):
+    banco = get_object_or_404(Banco, pk=pk)
+    form = BancoForm(request.POST or None, request.FILES or None, instance=banco)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Cuenta bancaria actualizada.")
+        return redirect("citas:administrar_bancos")
+    return render(request, "citas/banco_editar.html", {"form": form, "banco": banco})
+
+
+@solo_administrador
+def eliminar_banco(request, pk):
+    banco = get_object_or_404(Banco, pk=pk)
+    if request.method == "POST":
+        try:
+            banco.delete()
+            messages.success(request, "Cuenta bancaria eliminada.")
+        except ProtectedError:
+            banco.activo = False
+            banco.save(update_fields=["activo"])
+            messages.warning(request, "La cuenta tiene pagos asociados; se desactivó para conservar el historial.")
+    return redirect("citas:administrar_bancos")

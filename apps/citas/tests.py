@@ -11,7 +11,7 @@ from apps.medicos.models import Medico
 from apps.usuarios.models import Perfil
 
 from .models import Cita
-from .tasks import enviar_recordatorios_whatsapp
+from .tasks import enviar_recordatorios_email
 
 
 class RecepcionCitasTests(TestCase):
@@ -115,13 +115,13 @@ class RecepcionCitasTests(TestCase):
         self.assertEqual(ids, [self.medico.pk])
 
 
-class RecordatoriosWhatsAppTests(TestCase):
+class RecordatoriosEmailTests(TestCase):
     def setUp(self):
         User = get_user_model()
-        self.paciente = User.objects.create_user("paciente-wa", password="Clave123!")
+        self.paciente = User.objects.create_user("paciente-email", email="paciente@example.com", password="Clave123!")
         self.paciente.perfil.telefono = "+593987654321"
         self.paciente.perfil.save(update_fields=["telefono"])
-        especialidad = Especialidad.objects.create(nombre="WhatsApp")
+        especialidad = Especialidad.objects.create(nombre="Correo")
         self.medico = Medico.objects.create(especialidad=especialidad, nombres="Ana", apellidos="Médica", registro_profesional="WA-01")
         self.cita = Cita.objects.create(
             paciente=self.paciente, especialidad=especialidad, medico=self.medico,
@@ -130,33 +130,30 @@ class RecordatoriosWhatsAppTests(TestCase):
 
     @patch("apps.citas.tasks.enviar_recordatorio")
     def test_envio_exitoso_actualiza_cita_y_no_duplica(self, enviar):
-        enviar.return_value = {"message_id": "wamid.123", "estado": "accepted"}
-        self.assertEqual(enviar_recordatorios_whatsapp(), 1)
+        enviar.return_value = {"message_id": "SM123", "estado": "queued"}
+        self.assertEqual(enviar_recordatorios_email(), 1)
         self.cita.refresh_from_db()
-        self.assertTrue(self.cita.recordatorio_whatsapp_enviado)
-        self.assertEqual(self.cita.whatsapp_message_id, "wamid.123")
-        self.assertEqual(enviar_recordatorios_whatsapp(), 0)
+        self.assertTrue(self.cita.recordatorio_email_enviado)
+        self.assertEqual(enviar_recordatorios_email(), 0)
         self.assertEqual(enviar.call_count, 1)
 
     @patch("apps.citas.tasks.enviar_recordatorio")
     def test_cancelada_no_envia_y_fallo_queda_registrado(self, enviar):
         self.cita.estado = Cita.CANCELADA; self.cita.save(update_fields=["estado"])
-        self.assertEqual(enviar_recordatorios_whatsapp(), 0)
+        self.assertEqual(enviar_recordatorios_email(), 0)
         enviar.assert_not_called()
         self.cita.estado = Cita.CONFIRMADA; self.cita.save(update_fields=["estado"])
         enviar.side_effect = Exception("fallo simulado")
-        self.assertEqual(enviar_recordatorios_whatsapp(), 0)
+        self.assertEqual(enviar_recordatorios_email(), 0)
         self.cita.refresh_from_db()
-        self.assertFalse(self.cita.recordatorio_whatsapp_enviado)
-        self.assertEqual(self.cita.estado_recordatorio_whatsapp, "ERROR")
+        self.assertFalse(self.cita.recordatorio_email_enviado)
+        self.assertEqual(self.cita.estado_recordatorio_email, "ERROR")
 
     def test_reagendar_reinicia_recordatorio(self):
-        self.cita.recordatorio_whatsapp_enviado = True
-        self.cita.whatsapp_message_id = "anterior"
-        self.cita.save(update_fields=["recordatorio_whatsapp_enviado", "whatsapp_message_id"])
+        self.cita.recordatorio_email_enviado = True
+        self.cita.save(update_fields=["recordatorio_email_enviado"])
         self.cita.fecha += timedelta(days=1)
         self.cita.estado = Cita.REAGENDADA
         self.cita.save()
         self.cita.refresh_from_db()
-        self.assertFalse(self.cita.recordatorio_whatsapp_enviado)
-        self.assertEqual(self.cita.whatsapp_message_id, "")
+        self.assertFalse(self.cita.recordatorio_email_enviado)

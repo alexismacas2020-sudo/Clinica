@@ -32,3 +32,25 @@ class HistorialClinico(models.Model):
 
     def __str__(self):
         return f"Consulta {self.cita_id} - {self.paciente}"
+
+
+class ArchivoHistorial(models.Model):
+    TIPOS = (
+        ("RADIOGRAFIA", "Radiografía"), ("LABORATORIO", "Resultado de laboratorio"),
+        ("ECOGRAFIA", "Ecografía"), ("TOMOGRAFIA", "Tomografía"),
+        ("RESONANCIA", "Resonancia"), ("OTRO", "Otro documento"),
+    )
+    historial = models.ForeignKey(HistorialClinico, on_delete=models.CASCADE, related_name="archivos")
+    tipo = models.CharField(max_length=20, choices=TIPOS, default="OTRO")
+    archivo = models.FileField(upload_to="historial/archivos/%Y/%m/")
+    descripcion = models.CharField(max_length=250, blank=True)
+    subido_por = models.ForeignKey("auth.User", on_delete=models.PROTECT, related_name="archivos_clinicos_subidos")
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-creado_en",)
+        verbose_name = "archivo clínico"
+        verbose_name_plural = "archivos clínicos"
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.historial.paciente}"

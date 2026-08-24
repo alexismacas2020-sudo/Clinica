@@ -9,8 +9,8 @@ app = Celery("clinica")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 app.conf.beat_schedule = {
-    "recordatorios-whatsapp-cada-hora": {
-        "task": "apps.citas.tasks.enviar_recordatorios_whatsapp",
+    "recordatorios-email-cada-hora": {
+        "task": "apps.citas.tasks.enviar_recordatorios_email",
         "schedule": crontab(minute=0),
     }
 }

@@ -47,12 +47,26 @@ class InicioSesionForm(AuthenticationForm):
             raise ValidationError("Tu cuenta se encuentra desactivada. Comunícate con la clínica.")
 
 
+class SolicitarCodigoForm(forms.Form):
+    email = forms.EmailField(label="Correo electrónico")
+
+
+class VerificarCodigoForm(forms.Form):
+    codigo = forms.CharField(label="Código de recuperación", min_length=6, max_length=6, widget=forms.TextInput(attrs={"inputmode": "numeric", "autocomplete": "one-time-code"}))
+
+    def clean_codigo(self):
+        codigo = self.cleaned_data["codigo"].strip()
+        if not codigo.isdigit():
+            raise ValidationError("El código debe contener 6 números.")
+        return codigo
+
+
 class RegistroUsuarioForm(UserCreationForm):
     first_name = forms.CharField(label="Nombres", max_length=150)
     last_name = forms.CharField(label="Apellidos", max_length=150)
     email = forms.EmailField(label="Correo electrónico")
     cedula = forms.CharField(label="Cédula", max_length=10)
-    telefono = forms.CharField(label="Número de WhatsApp", max_length=20, help_text="Ejemplo: 0987654321 o +593987654321")
+    telefono = forms.CharField(label="Número celular", max_length=20, help_text="Ejemplo: 0987654321 o +593987654321")
 
     class Meta(UserCreationForm.Meta):
         model = get_user_model()
@@ -79,7 +93,7 @@ class RegistroUsuarioForm(UserCreationForm):
     def clean_telefono(self):
         telefono = normalizar_telefono_ecuador(self.cleaned_data["telefono"])
         if Perfil.objects.filter(telefono=telefono).exists():
-            raise ValidationError("El número de WhatsApp ya está registrado.")
+            raise ValidationError("El número celular ya está registrado.")
         return telefono
 
     def save(self, commit=True):
@@ -125,7 +139,7 @@ class PerfilForm(forms.ModelForm):
             return None
         telefono = normalizar_telefono_ecuador(valor)
         if Perfil.objects.exclude(pk=self.instance.pk).filter(telefono=telefono).exists():
-            raise ValidationError("El número de WhatsApp ya está registrado.")
+            raise ValidationError("El número celular ya está registrado.")
         return telefono
 
     def save(self, commit=True):
@@ -135,6 +149,12 @@ class PerfilForm(forms.ModelForm):
         self.user.email = self.cleaned_data["email"]
         if commit:
             self.user.save(update_fields=["first_name", "last_name", "email"])
+            cambios_medico = {
+                "nombres": self.user.first_name,
+                "apellidos": self.user.last_name,
+                "foto": perfil.foto.name if perfil.foto else "",
+            }
+            Medico.objects.filter(usuario=self.user).update(**cambios_medico)
         return perfil
 
 
@@ -210,7 +230,7 @@ class CrearRecepcionistaForm(forms.Form):
             return None
         telefono = normalizar_telefono_ecuador(valor)
         if Perfil.objects.filter(telefono=telefono).exists():
-            raise ValidationError("El número de WhatsApp ya está registrado.")
+            raise ValidationError("El número celular ya está registrado.")
         return telefono
 
     @transaction.atomic
@@ -276,7 +296,7 @@ class CrearCredencialPersonalForm(forms.Form):
             return None
         telefono = normalizar_telefono_ecuador(valor)
         if Perfil.objects.filter(telefono=telefono).exists():
-            raise ValidationError("El número de WhatsApp ya está registrado.")
+            raise ValidationError("El número celular ya está registrado.")
         return telefono
 
     def clean_password(self):
@@ -339,11 +359,18 @@ class AdminUsuarioForm(forms.Form):
     rol = forms.ChoiceField(choices=Perfil.Rol.choices)
     activo = forms.BooleanField(required=False, label="Usuario activo")
     foto = forms.ImageField(required=False)
+    especialidad = forms.ModelChoiceField(queryset=Especialidad.objects.none(), required=False)
+    registro_profesional = forms.CharField(max_length=50, required=False)
+    consultorio = forms.CharField(max_length=100, required=False)
+    biografia = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 4}))
+    duracion_consulta = forms.IntegerField(required=False, min_value=5, max_value=240, initial=30, label="Duración de consulta (minutos)")
+    destacado = forms.BooleanField(required=False, label="Mostrar como médico destacado")
 
     def __init__(self, *args, usuario, administrador, **kwargs):
         self.usuario = usuario
         self.administrador = administrador
         perfil = usuario.perfil
+        medico = Medico.objects.filter(usuario=usuario).first()
         kwargs.setdefault("initial", {
             "nombres": usuario.first_name,
             "apellidos": usuario.last_name,
@@ -351,8 +378,15 @@ class AdminUsuarioForm(forms.Form):
             "telefono": perfil.telefono,
             "rol": perfil.rol,
             "activo": usuario.is_active and perfil.activo,
+            "especialidad": medico.especialidad_id if medico else None,
+            "registro_profesional": medico.registro_profesional if medico else "",
+            "consultorio": medico.consultorio if medico else "",
+            "biografia": medico.biografia if medico else "",
+            "duracion_consulta": medico.duracion_consulta if medico else 30,
+            "destacado": medico.destacado if medico else False,
         })
         super().__init__(*args, **kwargs)
+        self.fields["especialidad"].queryset = Especialidad.objects.filter(activo=True).order_by("nombre")
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
@@ -366,7 +400,7 @@ class AdminUsuarioForm(forms.Form):
             return None
         telefono = normalizar_telefono_ecuador(valor)
         if Perfil.objects.exclude(pk=self.usuario.perfil.pk).filter(telefono=telefono).exists():
-            raise ValidationError("El número de WhatsApp ya está registrado.")
+            raise ValidationError("El número celular ya está registrado.")
         return telefono
 
     def clean(self):
@@ -376,6 +410,14 @@ class AdminUsuarioForm(forms.Form):
                 self.add_error("rol", "No puedes quitar tu propio rol ADMIN.")
             if not cleaned.get("activo"):
                 self.add_error("activo", "No puedes desactivar tu propia cuenta.")
+        if cleaned.get("rol") == Perfil.Rol.MEDICO:
+            if not cleaned.get("especialidad"):
+                self.add_error("especialidad", "Selecciona la especialidad del médico.")
+            registro = cleaned.get("registro_profesional", "").strip()
+            if not registro:
+                self.add_error("registro_profesional", "Ingresa el registro profesional.")
+            elif Medico.objects.exclude(usuario=self.usuario).filter(registro_profesional__iexact=registro).exists():
+                self.add_error("registro_profesional", "Ya existe un médico con este registro profesional.")
         return cleaned
 
     @transaction.atomic
@@ -394,4 +436,27 @@ class AdminUsuarioForm(forms.Form):
         if datos.get("foto"):
             perfil.foto = datos["foto"]
         perfil.save()
+        medico = Medico.objects.filter(usuario=usuario).first()
+        if datos["rol"] == Perfil.Rol.MEDICO:
+            valores_medico = {
+                "especialidad": datos["especialidad"],
+                "nombres": datos["nombres"],
+                "apellidos": datos["apellidos"],
+                "registro_profesional": datos["registro_profesional"].strip(),
+                "consultorio": datos["consultorio"],
+                "biografia": datos["biografia"],
+                "duracion_consulta": datos["duracion_consulta"] or 30,
+                "destacado": datos["destacado"],
+                "activo": datos["activo"],
+                "foto": perfil.foto.name if perfil.foto else "",
+            }
+            if medico:
+                for campo, valor in valores_medico.items():
+                    setattr(medico, campo, valor)
+                medico.save()
+            else:
+                Medico.objects.create(usuario=usuario, **valores_medico)
+        elif medico:
+            medico.activo = False
+            medico.save(update_fields=["activo"])
         return usuario

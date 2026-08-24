@@ -1,0 +1,92 @@
+.physician-card__avatar img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.physician-card__avatar {
+  position: relative;
+  height: 245px;
+  min-height: 245px;
+  overflow: hidden;
+}
+
+.physician-card__avatar > span {
+  z-index: 2;
+}
+
+.physician-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.physician-card__body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  background: #fff;
+}
+
+.physician-card__body > div:last-child {
+  margin-top: auto;
+  padding-top: 1.3rem;
+}
+
+.physician-card__details {
+  display: grid !important;
+  gap: .7rem !important;
+  margin-top: 1rem !important;
+}
+
+.physician-card__details p {
+  display: flex;
+  gap: .65rem;
+  align-items: flex-start;
+  margin: 0;
+}
+
+.physician-card__details p > i {
+  flex: 0 0 1.25rem;
+  margin-top: .18rem;
+}
+
+.physician-card__details p span,
+.physician-card__details p b {
+  display: block;
+}
+
+.physician-card__details p span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.physician-card__details p b {
+  margin-bottom: .08rem;
+  color: #263943;
+  font-size: .68rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.physician-card__details a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.physician-card__bio {
+  padding-top: .8rem;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 575.98px) {
+  .physician-card__avatar {
+    height: 220px;
+    min-height: 220px;
+  }
+}

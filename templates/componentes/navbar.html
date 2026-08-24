@@ -1,9 +1,8 @@
-{% load socialaccount %}
 <nav class="clinic-navbar navbar navbar-expand-xl sticky-top" aria-label="Navegación principal" data-navbar>
   <div class="container">
-    <a class="clinic-navbar__brand navbar-brand" href="{% url 'pagina:inicio' %}" aria-label="Clínica Reina, inicio">
+    <a class="clinic-navbar__brand navbar-brand" href="{% url 'pagina:inicio' %}" aria-label="Clínica Reina del Cisne, inicio">
       <span class="clinic-navbar__logo" aria-hidden="true"><i class="fa-solid fa-heart-pulse"></i></span>
-      <span>Clínica <strong>Reina</strong></span>
+      <span>Clínica <strong>Reina del Cisne</strong></span>
     </a>
     <button class="clinic-navbar__toggler navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavbar" aria-controls="menuNavbar" aria-expanded="false" aria-label="Abrir menú de navegación">
       <span class="navbar-toggler-icon"></span>
@@ -15,6 +14,7 @@
         <li class="nav-item"><a class="nav-link" href="{% url 'pagina:especialidades' %}">Especialidades</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'pagina:medicos' %}">Médicos</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'pagina:servicios' %}">Servicios</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'pagina:precios' %}">Precios</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'pagina:contacto' %}">Contacto</a></li>
       </ul>
       <div class="clinic-navbar__actions d-flex flex-column flex-xl-row align-items-xl-center gap-2">
@@ -30,6 +30,11 @@
               {% if user.is_superuser or perfil_actual.es_administrador %}
               <li><a class="dropdown-item" href="{% url 'dashboard:crear_credencial' %}"><i class="fa-solid fa-key" aria-hidden="true"></i> Crear credenciales</a></li>
               <li><a class="dropdown-item" href="{% url 'usuarios:admin_usuarios' %}"><i class="fa-solid fa-users-gear" aria-hidden="true"></i> Gestionar usuarios</a></li>
+              <li><a class="dropdown-item" href="{% url 'citas:administrar_bancos' %}"><i class="fa-solid fa-building-columns" aria-hidden="true"></i> Cuentas y códigos QR</a></li>
+              <li><a class="dropdown-item" href="{% url 'especialidades:administrar' %}"><i class="fa-solid fa-stethoscope" aria-hidden="true"></i> Especialidades y fotos</a></li>
+              <li><a class="dropdown-item" href="{% url 'configuracion:emergencias' %}"><i class="fa-solid fa-truck-medical" aria-hidden="true"></i> Configurar emergencias</a></li>
+              <li><a class="dropdown-item" href="{% url 'configuracion:contacto' %}"><i class="fa-solid fa-address-book" aria-hidden="true"></i> Configurar contacto</a></li>
+              <li><a class="dropdown-item" href="{% url 'reportes:resumen' %}"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Reportes</a></li>
               {% endif %}
               <li><hr class="dropdown-divider"></li>
               <li><form action="{% url 'usuarios:logout' %}" method="post">{% csrf_token %}<button class="dropdown-item text-danger" type="submit"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> Cerrar sesión</button></form></li>
@@ -37,8 +42,7 @@
           </div>
         {% else %}
           <a href="{% url 'usuarios:login' %}" class="btn clinic-login-btn"><i class="fa-regular fa-user" aria-hidden="true"></i> Ingresar</a>
-          <a href="{% url 'usuarios:registro' %}" class="visually-desktop-link">Crear cuenta</a>
-          {% if google_login_disponible %}<a href="{% provider_login_url 'google' process='login' %}" class="btn clinic-google-btn" aria-label="Continuar con Google"><i class="fa-brands fa-google" aria-hidden="true"></i></a>{% endif %}
+          <a href="{% url 'usuarios:registro' %}" class="clinic-register-link">Crear cuenta</a>
         {% endif %}
         <a href="{% url 'citas:agendar' %}" class="btn clinic-appointment-btn"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> Agendar cita</a>
       </div>

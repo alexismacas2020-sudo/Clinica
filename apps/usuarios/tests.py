@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from unittest.mock import patch
+import re
 
 from .models import Perfil
 from apps.especialidades.models import Especialidad
@@ -40,7 +42,7 @@ class UsuariosViewsTests(TestCase):
         self.assertContains(response, "Este nombre de usuario ya está registrado")
         self.assertContains(response, "Este correo electrónico ya está en uso")
         self.assertContains(response, "La cédula ingresada ya está registrada")
-        self.assertContains(response, "El número de WhatsApp ya está registrado")
+        self.assertContains(response, "El número celular ya está registrado")
         self.assertContains(response, "Los dos campos de contraseña no coinciden")
 
     def test_registro_rechaza_password_debil(self):
@@ -139,3 +141,23 @@ class UsuariosViewsTests(TestCase):
     def test_paciente_no_accede_a_gestion_interna_de_usuarios(self):
         self.client.force_login(self.usuario)
         self.assertEqual(self.client.get(reverse("usuarios:admin_usuarios")).status_code, 403)
+
+    @patch("apps.usuarios.views.enviar_correo")
+    def test_recuperacion_por_email_verifica_codigo_y_cambia_password(self, enviar_correo):
+        response = self.client.post(reverse("usuarios:password_reset"), {"email": self.usuario.email})
+        self.assertRedirects(response, reverse("usuarios:password_reset_verify"))
+        codigo = re.search(r"\b\d{6}\b", enviar_correo.call_args.args[2]).group()
+        response = self.client.post(reverse("usuarios:password_reset_verify"), {"codigo": codigo})
+        self.assertRedirects(response, reverse("usuarios:password_reset_change"))
+        nueva = "ClaveNueva456!"
+        response = self.client.post(reverse("usuarios:password_reset_change"), {"new_password1": nueva, "new_password2": nueva})
+        self.assertRedirects(response, reverse("usuarios:login"))
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.check_password(nueva))
+
+    @patch("apps.usuarios.views.enviar_correo")
+    def test_codigo_email_incorrecto_incrementa_intentos(self, enviar_correo):
+        self.client.post(reverse("usuarios:password_reset"), {"email": self.usuario.email})
+        response = self.client.post(reverse("usuarios:password_reset_verify"), {"codigo": "000000"})
+        self.assertContains(response, "El código es incorrecto")
+        self.assertEqual(self.usuario.codigos_recuperacion.get().intentos, 1)

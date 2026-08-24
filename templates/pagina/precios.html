@@ -1,0 +1,31 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}Precio de la consulta | Clínica Reina{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/precios.css' %}">{% endblock %}
+{% block content %}
+<section class="price-hero">
+  <div class="container"><div class="price-hero__layout">
+    <div class="price-hero__content" data-animate="fade-up">
+      <span class="price-eyebrow"><i class="fa-solid fa-shield-heart"></i> Precio claro, antes de reservar</span>
+      <h1>Conoce el valor de tu consulta médica</h1>
+      <p>Consulta la tarifa libremente. No necesitas registrarte, elegir horario ni iniciar un agendamiento.</p>
+      <div class="price-trust"><span><i class="fa-solid fa-circle-check"></i> Sin compromiso</span><span><i class="fa-solid fa-circle-check"></i> Sin costos ocultos</span></div>
+    </div>
+    <article class="price-spotlight" data-animate="zoom-in">
+      <span class="price-spotlight__top">Consulta médica</span>
+      <div class="price-spotlight__value"><sup>$</sup><strong>{{ valor_consulta|floatformat:2 }}</strong><span>USD</span></div>
+      <p>Tarifa base por cita</p>
+      <a class="btn btn-light btn-lg" href="{% url 'citas:agendar' %}">Agendar una cita <i class="fa-solid fa-arrow-right"></i></a>
+      <small><i class="fa-solid fa-lock-open"></i> Ver este precio no genera ninguna reserva</small>
+    </article>
+  </div></div>
+</section>
+<section class="price-information section-space"><div class="container">
+  <header class="price-information__header" data-animate="fade-up"><span>Información de la tarifa</span><h2>Todo lo que necesitas saber</h2></header>
+  <div class="price-facts">
+    <article data-animate="fade-up"><i class="fa-solid fa-stethoscope"></i><div><h3>Consulta profesional</h3><p>Valoración médica con uno de nuestros especialistas disponibles.</p></div></article>
+    <article data-animate="fade-up" data-animate-delay="80"><i class="fa-solid fa-credit-card"></i><div><h3>Opciones de pago</h3><p>Paga mediante efectivo, tarjeta, transferencia o seguro médico.</p></div></article>
+    <article data-animate="fade-up" data-animate-delay="160"><i class="fa-solid fa-circle-info"></i><div><h3>Servicios adicionales</h3><p>Exámenes, procedimientos y tratamientos se cotizan por separado.</p></div></article>
+  </div>
+  <div class="price-help" data-animate="fade-up"><div><span>¿Tienes alguna duda?</span><h2>Podemos orientarte antes de agendar</h2></div><a class="btn btn-outline-primary" href="{% url 'pagina:contacto' %}"><i class="fa-regular fa-envelope"></i> Contactar a la clínica</a></div>
+</div></section>
+{% endblock %}

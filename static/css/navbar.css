@@ -12,8 +12,8 @@
 .clinic-login-btn:hover, .clinic-user-menu:hover { color: #fff; background: var(--color-primary); }
 .clinic-appointment-btn { padding-inline: 1.15rem; color: #fff; background: var(--color-primary); border-color: var(--color-primary); box-shadow: 0 7px 18px rgb(8 119 201 / 20%); }
 .clinic-appointment-btn:hover { color: #fff; background: var(--color-primary-dark); border-color: var(--color-primary-dark); transform: translateY(-1px); }
-.clinic-google-btn { width: 2.5rem; color: var(--color-text); border-color: var(--color-border); }
-.visually-desktop-link { color: var(--color-muted); font-size: .84rem; font-weight: 600; }
+.clinic-register-link { display: inline-flex; align-items: center; min-height: 2.5rem; padding: 0 .3rem; color: var(--color-muted); font-size: .84rem; font-weight: 700; line-height: 1.2; text-align: center; text-decoration: none; white-space: nowrap; transition: color var(--transition-fast); }
+.clinic-register-link:hover { color: var(--color-primary); }
 .clinic-navbar .dropdown-menu { padding: .55rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
 .clinic-navbar .dropdown-item { display: flex; gap: .65rem; align-items: center; padding: .65rem .75rem; border-radius: .55rem; }
-@media (max-width: 1199.98px) { .clinic-navbar .navbar-collapse { max-height: calc(100vh - 90px); padding: 1rem 0 .35rem; overflow-y: auto; } .clinic-navbar .nav-link { padding-inline: .3rem !important; } .clinic-navbar .nav-link::after { right: auto; left: .3rem; width: 2rem; } .clinic-navbar__actions { align-items: stretch !important; padding-top: .8rem; border-top: 1px solid var(--color-border); } .clinic-navbar__actions .btn { width: 100%; } .clinic-google-btn { display: none; } }
+@media (max-width: 1199.98px) { .clinic-navbar .navbar-collapse { max-height: calc(100vh - 90px); padding: 1rem 0 .35rem; overflow-y: auto; } .clinic-navbar .nav-link { padding-inline: .3rem !important; } .clinic-navbar .nav-link::after { right: auto; left: .3rem; width: 2rem; } .clinic-navbar__actions { align-items: stretch !important; padding-top: .8rem; border-top: 1px solid var(--color-border); } .clinic-navbar__actions .btn { width: 100%; } .clinic-register-link { justify-content: center; padding: .65rem; } }

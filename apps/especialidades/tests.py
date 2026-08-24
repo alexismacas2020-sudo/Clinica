@@ -29,3 +29,13 @@ class GestionEspecialidadesTests(TestCase):
         paciente = get_user_model().objects.create_user("paciente-esp", password="Clave123!")
         self.client.force_login(paciente)
         self.assertEqual(self.client.get(reverse("especialidades:administrar")).status_code, 403)
+
+    def test_admin_puede_quitar_solo_la_foto_sin_eliminar_especialidad(self):
+        especialidad = Especialidad.objects.create(
+            nombre="Medicina deportiva", imagen="especialidades/medicina-deportiva.jpg"
+        )
+        respuesta = self.client.post(reverse("especialidades:quitar_imagen", args=[especialidad.pk]))
+        especialidad.refresh_from_db()
+        self.assertRedirects(respuesta, reverse("especialidades:administrar"))
+        self.assertFalse(especialidad.imagen)
+        self.assertTrue(Especialidad.objects.filter(pk=especialidad.pk).exists())

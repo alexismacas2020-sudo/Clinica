@@ -9,4 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
     tab.classList.add("active");
     form.querySelector(`[data-tab-panel="${tab.dataset.tabTarget}"]`)?.classList.add("active");
   }));
+
+  const panelConError = [...panels].find((panel) => panel.querySelector(".invalid-feedback, .is-invalid"));
+  if (panelConError) {
+    form.querySelector(`[data-tab-target="${panelConError.dataset.tabPanel}"]`)?.click();
+  }
 });

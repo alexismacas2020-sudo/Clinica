@@ -1,0 +1,297 @@
+/* ================================================================
+   CLÍNICA REINA — CAPA VISUAL GLOBAL
+   Se carga al final para unificar las vistas sin cambiar su HTML.
+   ================================================================ */
+
+/* 1. Tokens: color, elevación, radios, espaciado y movimiento */
+:root {
+  --brand-950: #082f49;
+  --brand-900: #0b3b53;
+  --brand-700: #087d8b;
+  --brand-600: #0798a8;
+  --brand-500: #14b8a6;
+  --brand-100: #ccfbf1;
+  --brand-50: #effcf9;
+  --accent-600: #0877c9;
+  --accent-100: #dff2ff;
+  --canvas: #f4f8fb;
+  --surface: #ffffff;
+  --surface-soft: #f8fbfc;
+  --ink: #102a43;
+  --ink-soft: #486477;
+  --line: #dce8ee;
+  --success: #168568;
+  --warning: #b7791f;
+  --danger: #c83e4d;
+  --info: #286fa8;
+  --gradient-brand: linear-gradient(135deg, #0b3b53 0%, #087d8b 62%, #14b8a6 100%);
+  --gradient-soft: linear-gradient(145deg, #ffffff 0%, #f3fbfb 100%);
+  --elevation-1: 0 6px 18px rgb(8 82 145 / 10%), 0 1px 3px rgb(8 47 73 / 7%);
+  --elevation-2: 0 16px 40px rgb(8 82 145 / 15%), 0 3px 9px rgb(8 47 73 / 8%);
+  --elevation-3: 0 26px 68px rgb(7 71 128 / 21%), 0 6px 18px rgb(8 47 73 / 10%);
+  --radius-control: .8rem;
+  --radius-card: 1.15rem;
+  --motion-fast: 180ms ease;
+  --motion-base: 300ms cubic-bezier(.2, .8, .2, 1);
+
+  /* Compatibilidad con las hojas existentes */
+  --color-primary: var(--accent-600);
+  --color-primary-dark: #075a98;
+  --color-primary-soft: #e8f5fd;
+  --color-success: var(--success);
+  --color-background: var(--canvas);
+  --color-surface: var(--surface);
+  --color-dark: var(--ink);
+  --color-text: #243b53;
+  --color-muted: #5f788b;
+  --color-border: var(--line);
+  --shadow-sm: var(--elevation-1);
+  --shadow-md: var(--elevation-2);
+  --shadow-lg: var(--elevation-3);
+}
+
+/* 2. Base y jerarquía tipográfica */
+body {
+  color: var(--color-text);
+  background:
+    radial-gradient(circle at 95% 2%, rgb(8 119 201 / 10%), transparent 32rem),
+    radial-gradient(circle at 4% 42%, rgb(8 125 139 / 6%), transparent 28rem),
+    var(--canvas);
+  font-size: clamp(.94rem, .2vw + .9rem, 1rem);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--ink);
+  font-weight: 750;
+  letter-spacing: -.025em;
+}
+
+p { color: var(--ink-soft); }
+
+/* 3. Controles interactivos y accesibilidad */
+a, button, .btn, .card, input, select, textarea {
+  transition:
+    color var(--motion-fast), background-color var(--motion-fast),
+    border-color var(--motion-fast), box-shadow var(--motion-base),
+    opacity var(--motion-fast), transform var(--motion-base);
+}
+
+.btn {
+  display: inline-flex;
+  min-height: 2.75rem;
+  gap: .5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-control);
+  font-weight: 750;
+}
+
+.btn:hover { box-shadow: var(--elevation-1); transform: translateY(-2px); }
+.btn:active { box-shadow: none; transform: translateY(0) scale(.98); }
+.btn-primary { background: linear-gradient(135deg, var(--brand-700), var(--brand-600)); border-color: var(--brand-700); }
+.btn-primary:hover, .btn-primary:focus { background: linear-gradient(135deg, #066c78, #078c9b); border-color: #066c78; }
+
+.form-control, .form-select {
+  min-height: 3rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  box-shadow: inset 0 1px 2px rgb(16 42 67 / 3%), 0 3px 10px rgb(8 82 145 / 5%);
+}
+
+.form-control:hover, .form-select:hover { border-color: #aac8d4; }
+.form-control:focus, .form-select:focus {
+  border-color: var(--brand-600);
+  box-shadow: 0 0 0 .22rem rgb(7 152 168 / 14%);
+}
+
+:focus-visible { outline: 3px solid rgb(7 152 168 / 30%); outline-offset: 3px; }
+
+/* 4. Superficies, tarjetas y tablas */
+.card, .role-card, .admin-card, .metric-card, .specialty-card,
+.physician-card, .dashboard-card, .doctor-card-panel {
+  background: var(--surface);
+  border-color: var(--line) !important;
+  border-radius: var(--radius-card);
+  box-shadow: var(--elevation-1);
+}
+
+.card::selection, .role-card::selection { background: #0877c9; }
+
+.card:hover, .metric-card:hover, .specialty-card:hover,
+.physician-card:hover, .dashboard-card:hover, .doctor-card-panel:hover {
+  box-shadow: var(--elevation-2);
+}
+
+.table { --bs-table-bg: transparent; color: var(--color-text); }
+.table thead th {
+  padding-block: .85rem;
+  color: #587184;
+  background: #f4f9fa;
+  border-bottom-color: var(--line);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+.table tbody tr { transition: background-color var(--motion-fast); }
+.table tbody tr:hover { background: var(--brand-50); }
+.table td { border-color: #e9f0f3; vertical-align: middle; }
+
+/* 5. Cabeceras y navegación */
+.clinic-navbar {
+  background: rgb(255 255 255 / 94%);
+  border-bottom-color: rgb(220 232 238 / 80%);
+  box-shadow: 0 5px 22px rgb(8 82 145 / 11%);
+}
+.clinic-navbar__logo { background: linear-gradient(135deg, var(--accent-600), var(--brand-500)); }
+.admin-hero, .role-header, .profile-hero { background: var(--gradient-brand); box-shadow: var(--elevation-3); }
+
+/* 6. Dashboard administrativo y reporte mensual */
+.admin-dashboard { background: transparent; }
+.admin-metrics-grid { gap: 1rem; }
+.metric-card { min-width: 0; padding: 1.15rem; }
+.metric-card strong { color: var(--ink); font-size: clamp(1.45rem, 2.4vw, 1.85rem); }
+
+.report-summary { overflow: hidden; }
+.report-summary .admin-card-header { background: var(--gradient-soft); }
+.report-summary .card-body { padding: clamp(1rem, 2.5vw, 1.5rem) !important; }
+.report-kpis {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 1rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.report-kpis article {
+  min-width: 0;
+  padding: 1.1rem;
+  background: linear-gradient(145deg, #fff, #f4fafb);
+  border: 1px solid var(--line);
+  border-radius: .9rem;
+  box-shadow: 0 6px 18px rgb(8 82 145 / 9%);
+}
+.report-kpis span, .report-kpis strong, .report-kpis small { display: block !important; }
+.report-kpis span { color: var(--ink-soft); font-size: .75rem; }
+.report-kpis strong { margin: .25rem 0; color: var(--ink); font-size: clamp(1.3rem, 2.2vw, 1.65rem); }
+.report-kpis small { color: #6e8493; font-size: .7rem; }
+.report-statuses { padding: 1.15rem; border: 1px solid var(--line); border-radius: .9rem; }
+.report-statuses__heading { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.report-status-row {
+  display: grid !important;
+  grid-template-columns: 8rem minmax(8rem, 1fr) 6rem !important;
+  gap: 1rem;
+  align-items: center;
+  margin-top: .8rem;
+}
+.report-progress { height: .65rem; overflow: hidden; background: #e8f0f3; border-radius: 999px; }
+.report-progress__bar { display: block; height: 100%; border-radius: inherit; box-shadow: 0 0 12px currentColor; }
+.report-status-row > strong { text-align: right; }
+
+/* 6.1 Reporte clínico: lectura rápida y estados inequívocos */
+.report-page { background: transparent; }
+.report-filter { overflow: visible; }
+.report-period {
+  display: flex;
+  gap: .65rem;
+  align-items: center;
+  padding: .85rem 1rem;
+  margin-top: 1rem;
+  color: var(--ink-soft);
+  background: #eaf7f7;
+  border: 1px solid #cce9e7;
+  border-radius: .8rem;
+  font-size: .84rem;
+}
+.report-period i { color: var(--brand-700); }
+.report-period strong { color: var(--ink); }
+.report-metrics article { position: relative; overflow: hidden; min-height: 7rem; }
+.report-metrics article::after {
+  position: absolute;
+  right: -1.5rem;
+  bottom: -2rem;
+  width: 6rem;
+  height: 6rem;
+  content: "";
+  background: currentColor;
+  border-radius: 50%;
+  opacity: .045;
+}
+.report-metrics article > i { flex: 0 0 3rem; width: 3rem; height: 3rem; font-size: 1.05rem; }
+.report-metrics article span { min-width: 0; color: var(--ink-soft); font-size: .78rem; }
+.report-metrics article strong { margin-top: .15rem; font-size: 1.65rem; line-height: 1.15; }
+.report-metrics article small { margin-top: .25rem; color: #718796; font-size: .67rem; }
+.report-metric--blue > i { color: #1b6ca8 !important; background: #e6f3fc !important; }
+.report-metric--green > i { color: #168568 !important; background: #e5f7f1 !important; }
+.report-metric--amber > i { color: #a9680d !important; background: #fff3db !important; }
+.report-metric--teal > i { color: #087d8b !important; background: #e3f7f6 !important; }
+.report-detail > header { padding: 1.2rem 1.35rem; background: var(--gradient-soft); }
+.report-detail > header div small { display: block; margin-top: .25rem; color: #6d8392; }
+.report-detail > header > span { display: inline-flex; gap: .4rem; align-items: center; color: var(--ink-soft); font-size: .8rem; }
+.report-detail .reception-table td { padding-block: 1rem; }
+.report-detail .reception-table td > strong { color: var(--ink); }
+.report-detail .status-badge { min-width: 6.5rem; text-align: center; }
+.payment-cell { display: grid; min-width: 11rem; gap: .25rem; align-items: start; }
+.payment-cell > strong { color: var(--ink); font-size: .82rem; }
+.payment-cell > small b { color: var(--ink); }
+.payment-status { width: fit-content; padding: .2rem .5rem; border-radius: 999px; font-size: .65rem; font-weight: 750; }
+.payment-status--aprobado { color: #12694f; background: #dcf5ea; }
+.payment-status--en_revision { color: #865b08; background: #fff0c7; }
+.payment-status--pendiente { color: #8d5d00; background: #fff3d6; }
+.payment-status--rechazado { color: #a52f3c; background: #fde5e8; }
+.payment-status--no_requerido { color: #456476; background: #eaf0f3; }
+.report-detail .empty-role { height: 14rem; color: #718796; }
+.report-detail .empty-role i, .report-detail .empty-role strong, .report-detail .empty-role span { display: block; }
+.report-detail .empty-role i { margin-bottom: .6rem; color: #8ab8bb; font-size: 2rem; }
+.report-detail .empty-role strong { color: var(--ink); font-size: 1rem; }
+
+/* 7. Microinteracciones y entrada visual */
+@keyframes clinic-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes clinic-slide-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+main > section { animation: clinic-fade-in .45s ease both; }
+.metric-card, .specialty-card, .physician-card, .role-card, .admin-card {
+  animation: clinic-slide-up .5s cubic-bezier(.2, .8, .2, 1) both;
+}
+.metric-card:nth-child(2), .specialty-card:nth-child(2) { animation-delay: 60ms; }
+.metric-card:nth-child(3), .specialty-card:nth-child(3) { animation-delay: 120ms; }
+.metric-card:nth-child(4) { animation-delay: 180ms; }
+
+.admin-quick-actions a:hover, .profile-shortcuts a:hover {
+  background: var(--brand-50);
+  border-color: #83d3cb;
+  box-shadow: var(--elevation-1);
+  transform: translateY(-3px);
+}
+
+/* 8. Responsive: tablet y móvil */
+@media (max-width: 991.98px) {
+  .report-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .admin-metrics-grid, .role-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 575.98px) {
+  :root { --radius-card: 1rem; }
+  .container { --bs-gutter-x: 1.5rem; }
+  .report-kpis, .admin-metrics-grid, .role-metrics { grid-template-columns: 1fr !important; }
+  .report-statuses__heading { flex-direction: column; }
+  .report-status-row { grid-template-columns: minmax(0, 1fr) auto !important; gap: .5rem; }
+  .report-status-row .report-progress { grid-row: 2; grid-column: 1 / -1; }
+  .admin-card-header { gap: .8rem; align-items: flex-start; flex-direction: column; }
+  .table th, .table td { white-space: nowrap; }
+}
+
+/* 9. Respeto a usuarios que reducen movimiento */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

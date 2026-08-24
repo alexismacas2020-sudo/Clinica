@@ -31,3 +31,12 @@ class Medico(models.Model):
 
     def __str__(self):
         return f"Dr(a). {self.nombres} {self.apellidos}"
+
+    @property
+    def foto_publica(self):
+        """Usa la foto médica y, para cuentas existentes, la foto del perfil."""
+        if self.foto:
+            return self.foto
+        if self.usuario_id and hasattr(self.usuario, "perfil"):
+            return self.usuario.perfil.foto
+        return None

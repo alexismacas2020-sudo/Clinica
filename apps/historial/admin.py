@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import HistorialClinico
+from .models import ArchivoHistorial, HistorialClinico
 
 @admin.register(HistorialClinico)
 class HistorialClinicoAdmin(admin.ModelAdmin):
@@ -9,3 +9,10 @@ class HistorialClinicoAdmin(admin.ModelAdmin):
     readonly_fields = ("cita", "paciente", "medico", "atendida_en", "actualizado_en")
     def has_add_permission(self, request): return False
     def has_delete_permission(self, request, obj=None): return False
+
+
+@admin.register(ArchivoHistorial)
+class ArchivoHistorialAdmin(admin.ModelAdmin):
+    list_display = ("historial", "tipo", "subido_por", "creado_en")
+    list_filter = ("tipo", "creado_en")
+    search_fields = ("historial__paciente__username", "descripcion")

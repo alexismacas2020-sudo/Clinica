@@ -1,11 +1,12 @@
 from django.urls import reverse
+from django.conf import settings
 from allauth.socialaccount.models import SocialApp
 
 from .models import Perfil
 
 
 def usuario_contexto(request):
-    google_login_disponible = SocialApp.objects.filter(provider="google").exists()
+    google_login_disponible = bool(settings.GOOGLE_OAUTH_CLIENT_ID and settings.GOOGLE_OAUTH_CLIENT_SECRET) or SocialApp.objects.filter(provider="google").exists()
     if not request.user.is_authenticated:
         return {"perfil_actual": None, "url_panel_usuario": None, "google_login_disponible": google_login_disponible}
     perfil, _ = Perfil.objects.get_or_create(

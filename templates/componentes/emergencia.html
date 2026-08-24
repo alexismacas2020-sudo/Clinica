@@ -1,0 +1,12 @@
+<aside class="emergency-bot" aria-label="Asistente de emergencias">
+  <div class="emergency-bot__greeting"><button type="button" aria-label="Cerrar saludo" data-emergency-greeting-close><i class="fa-solid fa-xmark"></i></button><strong>¿Necesitas ayuda urgente?</strong><span>Estoy aquí para conectarte con emergencias.</span></div>
+  <details data-emergency-bot>
+    <summary aria-label="Emergencias, llamar al {{ configuracion_emergencia.telefono }}"><span class="emergency-bot__status" aria-hidden="true"></span><i class="fa-solid fa-phone-volume" aria-hidden="true"></i><span class="emergency-bot__label"><small>Emergencias</small>{{ configuracion_emergencia.telefono }}</span></summary>
+    <div class="emergency-bot__panel">
+      <header><span><i class="fa-solid fa-user-nurse"></i><b aria-hidden="true"></b></span><div><strong>Asistente de emergencias</strong><small>Disponible para ayudarte</small></div></header>
+      <div class="emergency-bot__message"><strong>{{ configuracion_emergencia.titulo }}</strong><p>{{ configuracion_emergencia.mensaje }}</p></div>
+      <a href="tel:{{ configuracion_emergencia.telefono }}" class="btn btn-danger w-100"><i class="fa-solid fa-phone-volume me-2"></i>Llamar al {{ configuracion_emergencia.telefono }}</a>
+      <small class="emergency-bot__warning">Si existe riesgo vital, realiza la llamada inmediatamente.</small>
+    </div>
+  </details>
+</aside>

@@ -36,6 +36,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
 
                 "apps.usuarios.context_processors.usuario_contexto",
+                "apps.configuracion.context_processors.emergencia_contexto",
 
             ],
 

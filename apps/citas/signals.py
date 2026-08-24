@@ -10,8 +10,10 @@ def reiniciar_recordatorio_al_reagendar(sender, instance, **kwargs):
         return
     anterior = Cita.objects.filter(pk=instance.pk).values("fecha", "hora").first()
     if anterior and (anterior["fecha"] != instance.fecha or anterior["hora"] != instance.hora):
-        instance.recordatorio_whatsapp_enviado = False
-        instance.fecha_recordatorio_whatsapp = None
-        instance.whatsapp_message_id = ""
-        instance.estado_recordatorio_whatsapp = ""
-        instance.error_recordatorio_whatsapp = ""
+        instance.recordatorio_email_enviado = False
+        instance.fecha_recordatorio_email = None
+        instance.estado_recordatorio_email = ""
+        instance.error_recordatorio_email = ""
+        instance.confirmacion_email_enviada = False
+        instance.fecha_confirmacion_email = None
+        instance.error_confirmacion_email = ""

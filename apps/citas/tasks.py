@@ -4,19 +4,18 @@ from celery import shared_task
 from django.db import transaction
 from django.utils import timezone
 
-from apps.usuarios.validators import normalizar_telefono_ecuador
-
 from .models import Cita
-from .services.whatsapp_service import WhatsAppError, enviar_recordatorio
+from apps.usuarios.services.email_service import EmailError
+from .services.email_service import enviar_recordatorio
 
 
 @shared_task
-def enviar_recordatorios_whatsapp():
+def enviar_recordatorios_email():
     fecha_objetivo = timezone.localdate() + timedelta(days=1)
     ids = list(Cita.objects.filter(
         fecha=fecha_objetivo,
         estado__in=[Cita.PENDIENTE, Cita.CONFIRMADA],
-        recordatorio_whatsapp_enviado=False,
+        recordatorio_email_enviado=False,
     ).values_list("pk", flat=True))
     enviados = 0
     for cita_id in ids:
@@ -24,25 +23,25 @@ def enviar_recordatorios_whatsapp():
             cita = Cita.objects.select_for_update().select_related(
                 "paciente__perfil", "medico", "especialidad"
             ).get(pk=cita_id)
-            if cita.recordatorio_whatsapp_enviado or cita.estado not in [Cita.PENDIENTE, Cita.CONFIRMADA]:
+            if cita.recordatorio_email_enviado or cita.estado not in [Cita.PENDIENTE, Cita.CONFIRMADA]:
                 continue
             try:
-                normalizar_telefono_ecuador(cita.paciente.perfil.telefono)
+                if not cita.paciente.email:
+                    raise EmailError("El paciente no tiene correo electrónico registrado.")
                 resultado = enviar_recordatorio(cita)
             except Exception as exc:
-                mensaje = str(exc) if isinstance(exc, WhatsAppError) else "Número de WhatsApp inválido."
-                cita.estado_recordatorio_whatsapp = "ERROR"
-                cita.error_recordatorio_whatsapp = mensaje[:1000]
-                cita.save(update_fields=["estado_recordatorio_whatsapp", "error_recordatorio_whatsapp"])
+                mensaje = str(exc) if isinstance(exc, EmailError) else "No se pudo preparar el correo."
+                cita.estado_recordatorio_email = "ERROR"
+                cita.error_recordatorio_email = mensaje[:1000]
+                cita.save(update_fields=["estado_recordatorio_email", "error_recordatorio_email"])
                 continue
-            cita.recordatorio_whatsapp_enviado = True
-            cita.fecha_recordatorio_whatsapp = timezone.now()
-            cita.whatsapp_message_id = resultado["message_id"]
-            cita.estado_recordatorio_whatsapp = resultado["estado"][:30]
-            cita.error_recordatorio_whatsapp = ""
+            cita.recordatorio_email_enviado = True
+            cita.fecha_recordatorio_email = timezone.now()
+            cita.estado_recordatorio_email = resultado["estado"][:30]
+            cita.error_recordatorio_email = ""
             cita.save(update_fields=[
-                "recordatorio_whatsapp_enviado", "fecha_recordatorio_whatsapp",
-                "whatsapp_message_id", "estado_recordatorio_whatsapp", "error_recordatorio_whatsapp",
+                "recordatorio_email_enviado", "fecha_recordatorio_email",
+                "estado_recordatorio_email", "error_recordatorio_email",
             ])
             enviados += 1
     return enviados

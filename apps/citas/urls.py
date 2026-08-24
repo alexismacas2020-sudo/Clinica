@@ -13,4 +13,9 @@ urlpatterns = [
     path("recepcion/<int:pk>/editar/", views.recepcion_editar, name="recepcion_editar"),
     path("recepcion/disponibilidad/", views.verificar_disponibilidad, name="verificar_disponibilidad"),
     path("recepcion/<int:pk>/estado/<str:estado>/", views.cambiar_estado, name="cambiar_estado"),
+    path("<int:pk>/comprobante/", views.subir_comprobante, name="subir_comprobante"),
+    path("recepcion/<int:pk>/pago/", views.revisar_pago, name="revisar_pago"),
+    path("administracion/bancos/", views.administrar_bancos, name="administrar_bancos"),
+    path("administracion/bancos/<int:pk>/editar/", views.editar_banco, name="editar_banco"),
+    path("administracion/bancos/<int:pk>/eliminar/", views.eliminar_banco, name="eliminar_banco"),
 ]

@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}Mi historial clínico | Clínica Reina{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/roles_dashboard.css' %}">{% endblock %}
+{% block content %}<section class="role-dashboard"><div class="container py-5">
+<header class="role-header"><div><p>MI SALUD</p><h1>Historial clínico</h1><span>Tus consultas, diagnósticos, signos vitales y estudios en un solo lugar.</span></div><a class="btn btn-light" href="{% url 'dashboard:paciente' %}">Volver a mi panel</a></header>
+<section class="role-card mt-4"><header><h2>Consultas realizadas</h2><span>{{ historiales|length }} registros</span></header>{% for historial in historiales %}<div class="role-row"><strong>{{ historial.atendida_en|date:'d M Y' }}<small>{{ historial.cita.hora|time:'H:i' }}</small></strong><span>{{ historial.cita.especialidad.nombre }}<small>{{ historial.medico }} · {{ historial.diagnostico|truncatechars:100 }}</small></span>{% if historial.receta %}<a class="btn btn-sm btn-outline-success" href="{% url 'recetas:descargar' historial.receta.pk %}"><i class="fa-solid fa-file-prescription"></i> Receta</a>{% endif %}<a class="btn btn-sm btn-primary" href="{% url 'historial:mi_historial_detalle' historial.pk %}">Ver detalle</a></div>{% empty %}<p class="empty-role">Todavía no tienes consultas finalizadas en tu historial.</p>{% endfor %}</section>
+</div></section>{% endblock %}

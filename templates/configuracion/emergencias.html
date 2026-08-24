@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static crispy_forms_tags %}
+{% block title %}Configurar emergencias | Clínica Reina{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/configuracion-admin.css' %}?v=20260819-1">{% endblock %}
+{% block content %}
+<section class="config-admin"><div class="container py-4 py-lg-5">
+  <header class="config-admin__hero"><div><p class="config-admin__eyebrow"><i class="fa-solid fa-shield-heart"></i> ADMINISTRACIÓN</p><h1>Información de emergencias</h1><p>Configura el mensaje y el teléfono de atención urgente que verán los pacientes en toda la plataforma.</p></div><a class="btn btn-light" href="{% url 'dashboard:admin' %}"><i class="fa-solid fa-arrow-left"></i> Volver al panel</a></header>
+
+  <div class="row g-4 config-admin__layout"><div class="col-lg-7"><section class="config-panel bg-white"><header><i class="fa-solid fa-pen-to-square"></i><div><h2>Editar información</h2><small>Actualiza el contenido de la alerta pública</small></div></header><div class="config-panel__body"><form method="post" novalidate>{% csrf_token %}{{ form|crispy }}<button class="btn btn-primary" type="submit" data-loading-text="Guardando…"><i class="fa-solid fa-floppy-disk"></i> Guardar cambios</button></form></div></section></div>
+
+  <div class="col-lg-5"><section class="config-panel bg-white"><header><i class="fa-regular fa-eye"></i><div><h2>Vista previa</h2><small>Así se mostrará a los pacientes</small></div></header><div class="config-panel__body"><div class="emergency-admin-preview"><div class="emergency-admin-preview__top"><span class="emergency-admin-preview__icon"><i class="fa-solid fa-truck-medical"></i></span><div><strong>{{ configuracion.titulo }}</strong><p>{{ configuracion.mensaje }}</p><a href="tel:{{ configuracion.telefono }}"><i class="fa-solid fa-phone"></i> {{ configuracion.telefono }}</a></div></div></div><div class="config-status"><i class="fa-solid {% if configuracion.activo %}fa-circle-check{% else %}fa-circle-pause{% endif %}"></i><span>{% if configuracion.activo %}La alerta está activa y visible para los pacientes.{% else %}La alerta está desactivada y no se muestra públicamente.{% endif %}</span></div></div></section></div></div>
+</div></section>
+{% endblock %}

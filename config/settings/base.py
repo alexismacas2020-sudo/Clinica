@@ -169,6 +169,8 @@ TEMPLATES = [
 
                 "django.contrib.messages.context_processors.messages",
                 "apps.usuarios.context_processors.usuario_contexto",
+                "apps.configuracion.context_processors.emergencia_contexto",
+                "apps.configuracion.context_processors.contacto_contexto",
 
             ],
 
@@ -356,15 +358,20 @@ ACCOUNT_SIGNUP_FIELDS = [
 ]
 
 ACCOUNT_EMAIL_VERIFICATION = "optional"
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://127.0.0.1:6379/1")
 CELERY_TIMEZONE = TIME_ZONE
-WHATSAPP_ACCESS_TOKEN = env("WHATSAPP_ACCESS_TOKEN", default="")
-WHATSAPP_PHONE_NUMBER_ID = env("WHATSAPP_PHONE_NUMBER_ID", default="")
-WHATSAPP_API_VERSION = env("WHATSAPP_API_VERSION", default="v23.0")
-WHATSAPP_TEMPLATE_NAME = env("WHATSAPP_TEMPLATE_NAME", default="recordatorio_cita")
-WHATSAPP_LANGUAGE_CODE = env("WHATSAPP_LANGUAGE_CODE", default="es")
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
+CONTACT_RECIPIENT_EMAIL = env("CONTACT_RECIPIENT_EMAIL", default="alexismacas2020@gmail.com")
 CLINICA_NOMBRE = env("CLINICA_NOMBRE", default="Clínica Reina del Cisne")
 CLINICA_DIRECCION = env("CLINICA_DIRECCION", default="Centro Médico Reina")
 
@@ -403,8 +410,21 @@ SOCIALACCOUNT_PROVIDERS = {
             "access_type":
             "online",
 
+            "prompt":
+            "select_account",
+
         },
 
     }
 
 }
+
+GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default="")
+GOOGLE_OAUTH_CLIENT_SECRET = env("GOOGLE_OAUTH_CLIENT_SECRET", default="")
+if GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET:
+    SOCIALACCOUNT_PROVIDERS["google"]["APP"] = {
+        "client_id": GOOGLE_OAUTH_CLIENT_ID,
+        "secret": GOOGLE_OAUTH_CLIENT_SECRET,
+        "key": "",
+    }
+SOCIALACCOUNT_PROVIDERS["google"]["OAUTH_PKCE_ENABLED"] = True

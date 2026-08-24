@@ -1,0 +1,28 @@
+/* Términos y condiciones de la reserva */
+.booking-terms { display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: 1rem; padding: 1.15rem; margin-top: 1.5rem; background: #f7fbfc; border: 1px solid #d7e7eb; border-radius: 1rem; transition: border-color .25s ease, background .25s ease, box-shadow .25s ease; }
+.booking-terms.is-accepted { background: #f0fbf7; border-color: #9fd9c7; }
+.booking-terms.has-error { background: #fff7f7; border-color: #e1a5aa; box-shadow: 0 0 0 .2rem rgb(200 62 77 / 10%); }
+.booking-terms__icon { display: grid; width: 3rem; height: 3rem; place-items: center; color: #087d8b; background: #e1f5f3; border-radius: .8rem; font-size: 1.2rem; }
+.booking-terms__content h2 { margin: 0 0 .25rem; font-size: 1rem; }
+.booking-terms__content > p { margin: 0 0 .85rem; color: #617a89; font-size: .8rem; }
+.booking-terms__check { display: flex; gap: .65rem; align-items: flex-start; cursor: pointer; font-size: .86rem; font-weight: 650; }
+.booking-terms__check input { flex: 0 0 1.15rem; width: 1.15rem; height: 1.15rem; margin-top: .15rem; accent-color: #087d8b; }
+.booking-terms__link { padding: 0; color: #0877c9; font: inherit; font-weight: 750; text-decoration: underline; text-underline-offset: 2px; background: none; border: 0; }
+.booking-terms__link:hover { color: #075a98; }
+.booking-terms__error { margin-top: .65rem; color: #b02f3e; font-size: .78rem; font-weight: 700; }
+.booking-terms-modal { z-index: 2200; }
+.modal-backdrop { z-index: 2150; }
+.booking-terms-modal .modal-content { max-height: calc(100vh - 2rem); overflow: hidden; border: 0; border-radius: 1.25rem; box-shadow: 0 28px 80px rgb(8 47 73 / 24%); }
+.booking-terms-modal .modal-header { padding: 1.35rem 1.5rem; color: #fff; background: linear-gradient(135deg, #0b3b53, #087d8b); }
+.booking-terms-modal .modal-title { margin: 0; color: #fff; }
+.booking-terms-modal .modal-eyebrow { display: block; margin-bottom: .2rem; color: #bff4eb; font-size: .65rem; font-weight: 800; letter-spacing: .12em; }
+.booking-terms-modal .btn-close { filter: invert(1); }
+.booking-terms-modal .modal-body { padding: 1.5rem; }
+.terms-intro { color: #526d7d; }
+.terms-clauses { display: grid; gap: 1rem; padding: 0; margin: 0; list-style: none; }
+.terms-clauses li { display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: 1rem; padding: 1rem; background: #f7fafb; border: 1px solid #e0eaee; border-radius: .9rem; }
+.terms-clauses li > span { display: grid; width: 3rem; height: 3rem; place-items: center; color: #087d8b; background: #e2f6f3; border-radius: .75rem; }
+.terms-clauses h3 { margin: 0 0 .3rem; font-size: 1rem; }
+.terms-clauses p { margin: 0; color: #536d7c; font-size: .87rem; }
+.booking-terms-modal .modal-footer { padding: 1rem 1.5rem; background: #f7fafb; border-top-color: #e0eaee; }
+@media (max-width: 575.98px) { .booking-terms { grid-template-columns: 1fr; } .booking-terms__icon { width: 2.7rem; height: 2.7rem; } .terms-clauses li { grid-template-columns: 1fr; } .terms-clauses li > span { width: 2.6rem; height: 2.6rem; } }

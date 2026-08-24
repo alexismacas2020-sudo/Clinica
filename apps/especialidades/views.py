@@ -33,6 +33,20 @@ def editar(request, pk):
 
 
 @solo_administrador
+def quitar_imagen(request, pk):
+    if request.method == "POST":
+        especialidad = get_object_or_404(Especialidad, pk=pk)
+        if especialidad.imagen:
+            especialidad.imagen.delete(save=False)
+            especialidad.imagen = None
+            especialidad.save(update_fields=["imagen"])
+            messages.success(request, f"La foto de {especialidad.nombre} fue eliminada.")
+        else:
+            messages.info(request, "Esta especialidad no tiene una foto asignada.")
+    return redirect("especialidades:administrar")
+
+
+@solo_administrador
 def cambiar_activo(request, pk):
     if request.method == "POST":
         especialidad = get_object_or_404(Especialidad, pk=pk)
