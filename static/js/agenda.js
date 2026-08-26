@@ -10,6 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const submit = form.querySelector('.agenda-submit [type="submit"]');
   const termsCheckbox = form.querySelector("[data-terms-checkbox]");
   const termsError = form.querySelector("[data-terms-error]");
+  const reasonInput = form.querySelector('[name="motivo"]');
+  const agendaSteps = [...form.querySelectorAll("[data-agenda-step]")];
   const acceptTermsButton = document.querySelector("[data-accept-terms]");
   const summary = document.createElement("div");
   summary.className = "appointment-selection";
@@ -20,6 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialDate = dateInput?.value || "";
   const initialTime = timeInput?.value?.slice(0, 5) || "";
   const excluded = form.dataset.citaId || "";
+  const fixedHours = ["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"];
+  let availableDates = [];
   const paymentMethod = form.querySelector('[name="metodo_pago"]');
   const transferPayment = form.querySelector("[data-transfer-payment]");
   const toggleTransferPayment = () => {
@@ -52,6 +56,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  const updateSteps = () => {
+    const step1Complete = Boolean(specialty?.value && doctor?.value && reasonInput?.value.trim());
+    const step2Complete = step1Complete && Boolean(dateInput?.value && availableDates.includes(dateInput.value) && !dateInput.validationMessage);
+    const step3Complete = step2Complete && Boolean(timeInput?.value);
+    const unlocked = [true, step1Complete, step2Complete, step3Complete];
+    const completed = [step1Complete, step2Complete, step3Complete, false];
+    agendaSteps.forEach((step, index) => {
+      step.classList.toggle("is-locked", !unlocked[index]);
+      step.classList.toggle("is-complete", completed[index]);
+      step.classList.toggle("is-current", unlocked[index] && !completed[index] && !unlocked[index + 1]);
+      step.setAttribute("aria-disabled", String(!unlocked[index]));
+    });
+  };
+
   const updateTerms = () => {
     const accepted = Boolean(termsCheckbox?.checked);
     if (termsError) termsError.hidden = accepted;
@@ -78,18 +96,45 @@ document.addEventListener("DOMContentLoaded", () => {
     box.innerHTML = icon ? `<i class="${icon}"></i><p>${message}</p>` : `<p>${message}</p>`;
     updateSummary();
   };
-  const timeButton = (hour, selected) => {
+  const hourLabel = (hour) => {
+    const value = Number(hour.slice(0, 2));
+    const period = value < 12 ? "a. m." : "p. m.";
+    const display = value % 12 || 12;
+    return `${display}:00 ${period}`;
+  };
+  const timeButton = (hour, selected, enabled = true) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `time-slot ${hour === selected ? "active" : ""}`;
-    button.textContent = hour;
+    button.className = `time-slot ${enabled ? "is-available" : "is-unavailable"} ${hour === selected ? "active" : ""}`;
+    button.textContent = hourLabel(hour);
+    button.disabled = !enabled;
+    button.setAttribute("aria-disabled", String(!enabled));
     button.addEventListener("click", () => {
       slotsBox.querySelectorAll(".time-slot").forEach((item) => item.classList.remove("active"));
       button.classList.add("active");
       timeInput.value = hour;
       updateSummary();
+      updateSteps();
     });
     return button;
+  };
+  const renderFixedSlots = (available = [], selected = "", message = "Selecciona una fecha para habilitar las horas disponibles.") => {
+    slotsBox.className = "time-slots";
+    slotsBox.innerHTML = "";
+    [
+      { label: "Mañana", icon: "fa-sun", hours: fixedHours.filter((hour) => Number(hour.slice(0, 2)) <= 12) },
+      { label: "Tarde", icon: "fa-cloud-sun", hours: fixedHours.filter((hour) => Number(hour.slice(0, 2)) >= 14) },
+    ].forEach((group) => {
+      const section = document.createElement("section");
+      section.className = "time-group";
+      section.innerHTML = `<h3><i class="fa-solid ${group.icon}"></i>${group.label}</h3><div class="time-group-buttons"></div>`;
+      group.hours.forEach((hour) => section.lastElementChild.appendChild(timeButton(hour, selected, available.includes(hour))));
+      slotsBox.appendChild(section);
+    });
+    const note = document.createElement("p");
+    note.className = "time-slots-note";
+    note.textContent = message;
+    slotsBox.appendChild(note);
   };
   const loadSlots = async (date, selected = "") => {
     dateInput.value = date;
@@ -97,55 +142,46 @@ document.addEventListener("DOMContentLoaded", () => {
     showEmpty(slotsBox, "fa-solid fa-spinner fa-spin", "Consultando horas…");
     const query = new URLSearchParams({ medico: doctor.value, fecha: date, excluir: excluded });
     const data = await (await fetch(`${form.dataset.calendarUrl}?${query}`)).json();
-    slotsBox.className = "time-slots";
-    if (!data.horarios?.length) return showEmpty(slotsBox, "", "No quedan horas disponibles para este día.");
-    slotsBox.innerHTML = "";
-    [
-      { label: "Mañana", icon: "fa-sun", hours: data.horarios.filter((hour) => Number(hour.slice(0, 2)) < 12) },
-      { label: "Tarde", icon: "fa-cloud-sun", hours: data.horarios.filter((hour) => Number(hour.slice(0, 2)) >= 12) },
-    ].filter((group) => group.hours.length).forEach((group) => {
-      const section = document.createElement("section");
-      section.className = "time-group";
-      section.innerHTML = `<h3><i class="fa-solid ${group.icon}"></i>${group.label}</h3><div class="time-group-buttons"></div>`;
-      group.hours.forEach((hour) => section.lastElementChild.appendChild(timeButton(hour, selected)));
-      slotsBox.appendChild(section);
-    });
+    const available = data.horarios || [];
+    renderFixedSlots(available, selected, available.length ? "Selecciona una hora disponible." : "No quedan horas disponibles para este día.");
     if (selected && data.horarios.includes(selected)) timeInput.value = selected;
     updateSummary();
+    updateSteps();
   };
   const loadDates = async () => {
     if (!doctor?.value) {
       form.classList.remove("is-calendar-ready");
-      return showEmpty(datesBox, "fa-regular fa-calendar", "Selecciona un médico para consultar su calendario.");
+      availableDates = [];
+      dateInput.disabled = true;
+      dateInput.value = "";
+      renderFixedSlots();
+      return;
     }
-    showEmpty(datesBox, "fa-solid fa-spinner fa-spin", "Consultando disponibilidad…");
+    dateInput.disabled = true;
     const query = new URLSearchParams({ medico: doctor.value, excluir: excluded });
     const data = await (await fetch(`${form.dataset.calendarUrl}?${query}`)).json();
-    datesBox.className = "calendar-days";
-    datesBox.innerHTML = "";
+    availableDates = (data.fechas || []).map((item) => item.fecha);
+    dateInput.disabled = false;
     if (!data.fechas?.length) {
       form.classList.remove("is-calendar-ready");
-      return showEmpty(datesBox, "fa-regular fa-calendar-xmark", "Este médico no tiene fechas disponibles.");
+      dateInput.setCustomValidity("Este médico no tiene fechas disponibles.");
+      return renderFixedSlots([], "", "Este médico no tiene fechas disponibles.");
     }
     form.classList.add("is-calendar-ready");
-    data.fechas.forEach((item) => {
-      const parsed = new Date(`${item.fecha}T12:00:00`);
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = `calendar-day ${item.fecha === dateInput.value ? "active" : ""}`;
-      button.innerHTML = `<strong>${new Intl.DateTimeFormat("es", { weekday: "short", day: "numeric", month: "short" }).format(parsed)}</strong><small>${item.cupos} horarios disponibles</small>`;
-      button.addEventListener("click", () => {
-        datesBox.querySelectorAll(".calendar-day").forEach((day) => day.classList.remove("active"));
-        button.classList.add("active");
-        loadSlots(item.fecha);
-      });
-      datesBox.appendChild(button);
-    });
-    if (dateInput.value && data.fechas.some((item) => item.fecha === dateInput.value)) loadSlots(dateInput.value, initialTime);
-    else showEmpty(slotsBox, "", "Selecciona una fecha para ver sus horas.");
+    dateInput.min = availableDates[0];
+    dateInput.max = availableDates[availableDates.length - 1];
+    dateInput.setCustomValidity("");
+    if (dateInput.value && availableDates.includes(dateInput.value)) loadSlots(dateInput.value, initialTime);
+    else renderFixedSlots();
+    updateSteps();
   };
   const loadDoctors = async (reset = true) => {
-    if (!specialty?.value) return;
+    if (!specialty?.value) {
+      doctor.innerHTML = '<option value="">Selecciona un médico</option>';
+      dateInput.value = "";
+      timeInput.value = "";
+      return loadDates();
+    }
     const selected = reset ? "" : initialDoctor;
     const data = await (await fetch(`${form.dataset.doctorsUrl}?especialidad=${encodeURIComponent(specialty.value)}`)).json();
     doctor.innerHTML = '<option value="">Selecciona un médico</option>';
@@ -156,6 +192,27 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   specialty?.addEventListener("change", () => loadDoctors(true));
   doctor?.addEventListener("change", () => { dateInput.value = ""; timeInput.value = ""; loadDates(); });
+  reasonInput?.addEventListener("input", updateSteps);
+  dateInput?.addEventListener("change", () => {
+    timeInput.value = "";
+    if (!dateInput.value) {
+      dateInput.setCustomValidity("");
+      return renderFixedSlots();
+    }
+    if (!availableDates.includes(dateInput.value)) {
+      dateInput.setCustomValidity("La fecha seleccionada no tiene horarios disponibles para este médico.");
+      renderFixedSlots([], "", "La fecha seleccionada no tiene horarios disponibles.");
+      dateInput.reportValidity();
+      updateSummary();
+      return updateSteps();
+    }
+    dateInput.setCustomValidity("");
+    loadSlots(dateInput.value);
+    updateSteps();
+  });
+  renderFixedSlots();
+  if (!doctor?.value) dateInput.disabled = true;
+  updateSteps();
   if (specialty?.value) loadDoctors(false);
   else if (doctor?.value) loadDates();
 });

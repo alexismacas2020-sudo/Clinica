@@ -84,8 +84,8 @@ class UsuariosViewsTests(TestCase):
         self.assertContains(self.client.get(reverse("usuarios:login")), "Continuar con Google")
 
     @override_settings(GOOGLE_OAUTH_CLIENT_ID="cliente-prueba", GOOGLE_OAUTH_CLIENT_SECRET="secreto-prueba")
-    def test_registro_muestra_acceso_con_google(self):
-        self.assertContains(self.client.get(reverse("usuarios:registro")), "Continuar con Google")
+    def test_registro_no_muestra_acceso_con_google(self):
+        self.assertNotContains(self.client.get(reverse("usuarios:registro")), "Continuar con Google")
 
     def test_admin_crea_credenciales_de_recepcionista(self):
         admin = get_user_model().objects.create_superuser(username="admin2", email="admin2@example.com", password=self.password)

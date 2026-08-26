@@ -50,6 +50,23 @@
   --shadow-lg: var(--elevation-3);
 }
 
+/* Texto de alto contraste para encabezados oscuros en todos los portales. */
+:where(
+  .admin-hero > div:first-child,
+  .admin-welcome > div:first-child,
+  .portal-hero .col-lg-8,
+  .profile-hero .profile-identity > div:not(.profile-avatar),
+  .role-header > div:first-child,
+  .consultation-header > div:first-child,
+  .config-admin__hero > div:first-child,
+  .reception-hero > div:first-child,
+  .price-hero,
+  .home-cta__inner > div:first-child,
+  .specialties-cta .container > div > div:first-child
+) :where(h1, h2, h3, p, span, small, i) {
+  color: #fff !important;
+}
+
 /* 2. Base y jerarquía tipográfica */
 body {
   color: var(--color-text);

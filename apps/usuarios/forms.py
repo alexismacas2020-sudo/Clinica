@@ -72,6 +72,13 @@ class RegistroUsuarioForm(UserCreationForm):
         model = get_user_model()
         fields = ("first_name", "last_name", "username", "cedula", "email", "telefono")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # UserCreationForm agrega autofocus al usuario. En este formulario hacía
+        # que el navegador saltara directamente a los campos y ocultara el título.
+        for field in self.fields.values():
+            field.widget.attrs.pop("autofocus", None)
+
     def clean_username(self):
         username = self.cleaned_data["username"].strip()
         if get_user_model().objects.filter(username__iexact=username).exists():

@@ -1,0 +1,40 @@
+.agenda-steps-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 17rem;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid #dfeaea;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(24, 67, 76, .07);
+}
+
+.agenda-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.agenda-steps-card .agenda-step { height: 100%; }
+.agenda-step{position:relative;transition:opacity .2s ease,border-color .2s ease,box-shadow .2s ease}.agenda-step.is-current{border-color:#63bdb4;box-shadow:0 0 0 3px rgba(8,125,139,.08)}.agenda-step.is-complete>span{background:#198754}.agenda-step.is-complete>span::after{content:"✓"}.agenda-step.is-complete>span{font-size:0}.agenda-step.is-complete>span::after{font-size:.9rem}.agenda-step.is-locked{opacity:.58}.agenda-step.is-locked>div>*:not(h2):not(.agenda-step-lock){pointer-events:none}.agenda-step-lock{display:none;margin:-.35rem 0 .75rem;color:#6f8187;font-size:.75rem}.agenda-step.is-locked .agenda-step-lock{display:block}.agenda-step.is-locked .time-slots{pointer-events:none}
+.agenda-steps-card .checkout-summary { align-self: start; position: sticky; top: 5.5rem; }
+.time-group-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); gap: .5rem; }
+.time-slot { padding: .65rem .72rem; font-size: .82rem; }
+[data-calendar-form] #div_id_hora { display: none; }
+[data-calendar-form] [data-calendar-dates] { display: none !important; }
+[data-calendar-form].is-calendar-ready #div_id_fecha { display: block; }
+.time-slot.is-available { color: #146c43; background: #e9f8ef; border-color: #69bd8b; }
+.time-slot.is-available:hover,.time-slot.is-available.active { color: #fff; background: #198754; border-color: #198754; }
+.time-slot:disabled { color: #8b9da3; background: #edf2f2; border-color: #d8e2e2; cursor: not-allowed; opacity: .7; }
+.time-slots-note { grid-column: 1 / -1; color: #687f87; font-size: .78rem; text-align: center; }
+
+@media (max-width: 991.98px) {
+  .agenda-steps-card { grid-template-columns: 1fr; }
+  .agenda-steps-grid { grid-template-columns: 1fr 1fr; }
+  .agenda-steps-card .checkout-summary { position: static; }
+}
+
+@media (max-width: 767.98px) {
+  .agenda-steps-card { padding: .85rem; }
+  .agenda-steps-grid { grid-template-columns: 1fr; }
+}

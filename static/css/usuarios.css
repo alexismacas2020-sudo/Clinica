@@ -4,9 +4,10 @@
 .auth-card .btn, .portal-card .btn { border-radius: .6rem; }
 
 .portal-hero { color: #fff; border-radius: 1.25rem; background: linear-gradient(120deg, #0b5cab, #077b8a); box-shadow: 0 1rem 2rem rgba(11, 92, 171, .18); }
-.portal-hero h1 { font-weight: 700; }
+.portal-hero h1 { color: #fff !important; font-weight: 700; }
+.portal-hero p { color: #fff !important; }
 .portal-eyebrow, .section-label { font-size: .72rem; font-weight: 700; letter-spacing: .09em; }
-.portal-eyebrow { color: #c8f4ed; text-transform: uppercase; }
+.portal-eyebrow { color: #fff !important; text-transform: uppercase; }
 .section-label { color: #16717c; text-transform: uppercase; }
 .dashboard-card, .doctor-card-panel { border-radius: 1rem; overflow: hidden; }
 .appointment-time { color: #145b67; font-weight: 600; background: #eef9f8; display: inline-flex; gap: .5rem; padding: .65rem .8rem; border-radius: .55rem; }
