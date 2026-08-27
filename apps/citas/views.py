@@ -1,3 +1,5 @@
+import logging
+
 from django.shortcuts import render
 
 from django.contrib import messages
@@ -16,6 +18,25 @@ from .forms import AgendarCitaForm, BancoForm, CitaRecepcionForm, ComprobantePag
 from .models import Banco, Cita
 from .services.email_service import enviar_aviso_nueva_cita_clinica, enviar_estado, enviar_estado_pago
 from apps.usuarios.services.email_service import EmailError
+
+
+logger = logging.getLogger(__name__)
+
+
+def _enviar_notificacion_sin_interrumpir(request, enviar, cita, mensaje_error):
+    """Una falla de correo nunca debe convertir una cita guardada en un error 500."""
+    try:
+        enviar(cita)
+        return True
+    except Exception as exc:
+        logger.exception(
+            "No se pudo enviar una notificación de la cita %s mediante %s.",
+            cita.pk,
+            getattr(enviar, "__name__", enviar.__class__.__name__),
+        )
+        detalle = str(exc).strip() if isinstance(exc, EmailError) else "Revisa los logs del servidor."
+        messages.warning(request, f"{mensaje_error} {detalle}".strip())
+        return False
 
 
 def _horarios_libres(medico, fecha, excluir=None):
@@ -93,19 +114,19 @@ def agendar(request):
         cita.paciente = request.user
         cita.full_clean()
         cita.save()
-        try:
-            enviar_estado(cita)
-        except EmailError as exc:
-            messages.warning(request, f"La cita se registró, pero no fue posible enviar el correo. {exc}")
-        try:
-            enviar_aviso_nueva_cita_clinica(cita)
-        except EmailError as exc:
-            messages.warning(request, f"La cita se registró, pero no fue posible avisar a la clínica. {exc}")
+        _enviar_notificacion_sin_interrumpir(
+            request, enviar_estado, cita,
+            "La cita se registró, pero no fue posible enviar el correo al paciente.",
+        )
+        _enviar_notificacion_sin_interrumpir(
+            request, enviar_aviso_nueva_cita_clinica, cita,
+            "La cita se registró, pero no fue posible avisar a la clínica.",
+        )
         if cita.metodo_pago == Cita.TRANSFERENCIA:
-            try:
-                enviar_estado_pago(cita)
-            except EmailError:
-                messages.warning(request, "No fue posible enviar el aviso del pago por correo.")
+            _enviar_notificacion_sin_interrumpir(
+                request, enviar_estado_pago, cita,
+                "No fue posible enviar el aviso del pago por correo.",
+            )
         messages.success(request, "Tu cita fue registrada y está pendiente de confirmación.")
         return redirect("citas:mis_citas")
     if request.method == "POST":

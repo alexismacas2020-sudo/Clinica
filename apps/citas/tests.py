@@ -130,6 +130,23 @@ class AvisoNuevaCitaTests(TestCase):
         enviar_estado.assert_called_once_with(cita)
         enviar_aviso.assert_called_once_with(cita)
 
+    @patch("apps.citas.views.enviar_aviso_nueva_cita_clinica", side_effect=RuntimeError("fallo inesperado"))
+    @patch("apps.citas.views.enviar_estado", side_effect=RuntimeError("fallo inesperado"))
+    def test_error_inesperado_de_notificacion_no_produce_error_500(self, enviar_estado, enviar_aviso):
+        self.client.force_login(self.paciente)
+        response = self.client.post(reverse("citas:agendar"), {
+            "especialidad": self.especialidad.pk,
+            "medico": self.medico.pk,
+            "fecha": self.fecha.isoformat(),
+            "hora": "10:30",
+            "motivo": "Control general",
+            "metodo_pago": Cita.EFECTIVO,
+            "acepta_terminos": "on",
+        })
+
+        self.assertRedirects(response, reverse("citas:mis_citas"))
+        self.assertTrue(Cita.objects.filter(paciente=self.paciente, hora="10:30").exists())
+
 
 class RecordatoriosEmailTests(TestCase):
     def setUp(self):
