@@ -1,12 +1,9 @@
-import logging
-
 from django.shortcuts import render
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect
 from django.http import JsonResponse
-from django.core.exceptions import ValidationError
 from django.db.models.deletion import ProtectedError
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -16,27 +13,8 @@ from apps.usuarios.decorators import administrador_o_recepcionista, solo_adminis
 
 from .forms import AgendarCitaForm, BancoForm, CitaRecepcionForm, ComprobantePagoForm, RevisarPagoForm
 from .models import Banco, Cita
-from .services.email_service import enviar_aviso_nueva_cita_clinica, enviar_estado, enviar_estado_pago
+from .services.email_service import enviar_estado, enviar_estado_pago
 from apps.usuarios.services.email_service import EmailError
-
-
-logger = logging.getLogger(__name__)
-
-
-def _enviar_notificacion_sin_interrumpir(request, enviar, cita, mensaje_error):
-    """Una falla de correo nunca debe convertir una cita guardada en un error 500."""
-    try:
-        enviar(cita)
-        return True
-    except Exception as exc:
-        logger.exception(
-            "No se pudo enviar una notificación de la cita %s mediante %s.",
-            cita.pk,
-            getattr(enviar, "__name__", enviar.__class__.__name__),
-        )
-        detalle = str(exc).strip() if isinstance(exc, EmailError) else "Revisa los logs del servidor."
-        messages.warning(request, f"{mensaje_error} {detalle}".strip())
-        return False
 
 
 def _horarios_libres(medico, fecha, excluir=None):
@@ -114,20 +92,7 @@ def agendar(request):
         cita.paciente = request.user
         cita.full_clean()
         cita.save()
-        _enviar_notificacion_sin_interrumpir(
-            request, enviar_estado, cita,
-            "La cita se registró, pero no fue posible enviar el correo al paciente.",
-        )
-        _enviar_notificacion_sin_interrumpir(
-            request, enviar_aviso_nueva_cita_clinica, cita,
-            "La cita se registró, pero no fue posible avisar a la clínica.",
-        )
-        if cita.metodo_pago == Cita.TRANSFERENCIA:
-            _enviar_notificacion_sin_interrumpir(
-                request, enviar_estado_pago, cita,
-                "No fue posible enviar el aviso del pago por correo.",
-            )
-        messages.success(request, "Tu cita fue registrada y está pendiente de confirmación.")
+        messages.success(request, "¡Cita agendada con éxito! Tu solicitud quedó registrada y está pendiente de validación por recepción.")
         return redirect("citas:mis_citas")
     if request.method == "POST":
         messages.error(request, "No se pudo agendar la cita. Revisa los campos marcados y vuelve a intentarlo.")
@@ -145,10 +110,6 @@ def recepcion_crear(request):
     form = CitaRecepcionForm(request.POST or None, request.FILES or None)
     if request.method == "POST" and form.is_valid():
         cita = form.save()
-        try:
-            enviar_estado(cita)
-        except EmailError:
-            messages.warning(request, "La cita se creó, pero no fue posible enviar el correo.")
         messages.success(request, f"Cita creada para {cita.paciente.get_full_name() or cita.paciente.username}.")
         return redirect("dashboard:recepcionista" if request.user.perfil.rol == "RECEPCIONISTA" else "dashboard:admin")
     if request.method == "POST":
@@ -187,30 +148,42 @@ def cambiar_estado(request, pk, estado):
         estado_anterior = cita.estado
         cita.estado = estado
         cita.save(update_fields=["estado"])
-        if estado == Cita.CONFIRMADA and estado_anterior != Cita.CONFIRMADA and not cita.confirmacion_email_enviada:
+        if estado != estado_anterior:
+            correo_enviado = True
             try:
-                if not cita.paciente.email:
-                    raise EmailError("El paciente no tiene correo electrónico registrado.")
                 enviar_estado(cita, estado_anterior)
-                cita.confirmacion_email_enviada = True
-                cita.fecha_confirmacion_email = timezone.now()
-                cita.error_confirmacion_email = ""
-                cita.save(update_fields=["confirmacion_email_enviada", "fecha_confirmacion_email", "error_confirmacion_email"])
-                messages.success(request, "La cita quedó confirmada y el paciente recibió un correo.")
-            except (EmailError, ValidationError) as exc:
-                cita.error_confirmacion_email = str(exc)[:1000]
-                cita.save(update_fields=["error_confirmacion_email"])
+            except EmailError as exc:
+                correo_enviado = False
+                if estado == Cita.CONFIRMADA:
+                    cita.confirmacion_email_enviada = False
+                    cita.fecha_confirmacion_email = None
+                    cita.error_confirmacion_email = str(exc)
+                    cita.save(update_fields=[
+                        "confirmacion_email_enviada",
+                        "fecha_confirmacion_email",
+                        "error_confirmacion_email",
+                    ])
+            else:
+                if estado == Cita.CONFIRMADA:
+                    cita.confirmacion_email_enviada = True
+                    cita.fecha_confirmacion_email = timezone.now()
+                    cita.error_confirmacion_email = ""
+                    cita.save(update_fields=[
+                        "confirmacion_email_enviada",
+                        "fecha_confirmacion_email",
+                        "error_confirmacion_email",
+                    ])
+            if correo_enviado:
+                messages.success(request, f"La cita quedó {cita.get_estado_display().lower()} correctamente.")
+            elif estado == Cita.CONFIRMADA:
+                messages.warning(request, "La cita fue aceptada, pero no pudimos enviar el correo al paciente.")
+            else:
                 messages.warning(
                     request,
-                    f"La cita quedó confirmada, pero no fue posible enviar el correo al paciente. {exc}",
+                    f"La cita quedó {cita.get_estado_display().lower()}, pero no pudimos enviar el correo al paciente.",
                 )
         else:
-            if estado == Cita.CANCELADA and estado_anterior != Cita.CANCELADA:
-                try:
-                    enviar_estado(cita, estado_anterior)
-                except EmailError:
-                    messages.warning(request, "La cita quedó cancelada, pero no fue posible enviar el correo.")
-            messages.success(request, f"La cita quedó {cita.get_estado_display().lower()}.")
+            messages.info(request, f"La cita ya estaba {cita.get_estado_display().lower()}.")
     return redirect("dashboard:recepcionista")
 
 

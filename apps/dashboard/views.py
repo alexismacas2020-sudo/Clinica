@@ -124,6 +124,8 @@ def dashboard_recepcionista(request):
         bandeja = bandeja.filter(estado_pago=Cita.PAGO_PENDIENTE)
     elif vista == "proximas":
         bandeja = bandeja.exclude(estado=Cita.ATENDIDA)
+    elif vista == "confirmadas":
+        bandeja = bandeja.filter(estado=Cita.CONFIRMADA)
     elif vista == "todas":
         pass
     else:
@@ -147,6 +149,7 @@ def dashboard_recepcionista(request):
         "bandeja": bandeja[:80],
         "vista": vista,
         "total_por_confirmar": citas.filter(estado__in=[Cita.PENDIENTE, Cita.REAGENDADA]).count(),
+        "total_confirmadas": citas.filter(estado=Cita.CONFIRMADA).count(),
         "total_proximas": citas.exclude(estado__in=[Cita.CANCELADA, Cita.ATENDIDA]).count(),
     })
 

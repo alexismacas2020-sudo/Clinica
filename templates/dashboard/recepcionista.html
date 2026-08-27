@@ -11,6 +11,7 @@
   <a class="filter-chip filter-chip--amber {% if vista == 'pendientes' %}active{% endif %}" href="?vista=pendientes"><i class="fa-solid fa-hourglass-half"></i><span>Pagos pendientes<small>{{ total_pagos_pendientes }}</small></span></a>
   <a class="filter-chip filter-chip--red {% if vista == 'por_pagar' %}active{% endif %}" href="?vista=por_pagar"><i class="fa-solid fa-wallet"></i><span>Por pagar<small>{{ total_pagos_faltantes }}</small></span></a>
   <a class="filter-chip filter-chip--blue {% if vista == 'por_confirmar' %}active{% endif %}" href="?vista=por_confirmar"><i class="fa-solid fa-clock"></i><span>Por confirmar<small>{{ total_por_confirmar }}</small></span></a>
+  <a class="filter-chip filter-chip--green {% if vista == 'confirmadas' %}active{% endif %}" href="?vista=confirmadas"><i class="fa-solid fa-circle-check"></i><span>Confirmadas<small>{{ total_confirmadas }}</small></span></a>
   <a class="filter-chip filter-chip--green {% if vista == 'proximas' %}active{% endif %}" href="?vista=proximas"><i class="fa-solid fa-calendar-check"></i><span>Agenda próxima<small>{{ total_proximas }}</small></span></a>
   <a class="filter-chip filter-chip--slate {% if vista == 'todas' %}active{% endif %}" href="?vista=todas"><i class="fa-solid fa-table-list"></i><span>Todas<small>{{ proximas_citas|length }}+</small></span></a>
 </nav>
