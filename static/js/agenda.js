@@ -24,22 +24,29 @@ document.addEventListener("DOMContentLoaded", () => {
   const excluded = form.dataset.citaId || "";
   const fixedHours = ["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"];
   let availableDates = [];
+  const bank = form.querySelector('[name="banco"]');
   const paymentMethod = form.querySelector('[name="metodo_pago"]');
   const transferPayment = form.querySelector("[data-transfer-payment]");
-  const toggleTransferPayment = () => {
-    if (!transferPayment || !paymentMethod) return;
-    const isTransfer = paymentMethod.value === "TRANSFERENCIA";
-    transferPayment.hidden = !isTransfer;
-    transferPayment.setAttribute("aria-hidden", String(!isTransfer));
+  const cashPayment = form.querySelector("[data-cash-payment]");
+  const bankCards = [...form.querySelectorAll("[data-bank-id]")];
+  const showSelectedBank = () => bankCards.forEach((card) => {
+    card.hidden = String(card.dataset.bankId) !== String(bank?.value || "");
+  });
+  bank?.addEventListener("change", showSelectedBank);
+  showSelectedBank();
+  const togglePayment = () => {
+    const isTransfer = !paymentMethod || paymentMethod.value === "TRANSFERENCIA";
+    if (transferPayment) transferPayment.hidden = !isTransfer;
+    if (cashPayment) cashPayment.hidden = isTransfer;
     if (!isTransfer) {
-      const bank = form.querySelector('[name="banco"]');
-      const receipt = form.querySelector('[name="comprobante_pago"]');
       if (bank) bank.value = "";
+      const receipt = form.querySelector('[name="comprobante_pago"]');
       if (receipt) receipt.value = "";
+      showSelectedBank();
     }
   };
-  paymentMethod?.addEventListener("change", toggleTransferPayment);
-  toggleTransferPayment();
+  paymentMethod?.addEventListener("change", togglePayment);
+  togglePayment();
 
   const updateSummary = () => {
     const complete = Boolean(doctor?.value && dateInput?.value && timeInput?.value);

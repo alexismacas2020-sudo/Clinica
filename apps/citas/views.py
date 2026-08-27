@@ -104,6 +104,8 @@ def agendar(request):
                 messages.warning(request, "No fue posible enviar el aviso del pago por correo.")
         messages.success(request, "Tu cita fue registrada y está pendiente de confirmación.")
         return redirect("citas:mis_citas")
+    if request.method == "POST":
+        messages.error(request, "No se pudo agendar la cita. Revisa los campos marcados y vuelve a intentarlo.")
     return render(request, "citas/agendar.html", {"form": form, "bancos": Banco.objects.filter(activo=True)})
 
 
@@ -124,31 +126,9 @@ def recepcion_crear(request):
             messages.warning(request, "La cita se creó, pero no fue posible enviar el correo.")
         messages.success(request, f"Cita creada para {cita.paciente.get_full_name() or cita.paciente.username}.")
         return redirect("dashboard:recepcionista" if request.user.perfil.rol == "RECEPCIONISTA" else "dashboard:admin")
+    if request.method == "POST":
+        messages.error(request, "No se pudo registrar la cita. Revisa los campos marcados.")
     return render(request, "citas/recepcion_form.html", {"form": form, "titulo": "Registrar cita", "bancos": Banco.objects.filter(activo=True)})
-
-
-@administrador_o_recepcionista
-def recepcion_editar(request, pk):
-    cita = get_object_or_404(Cita, pk=pk)
-    agenda_anterior = (cita.medico_id, cita.fecha, cita.hora)
-    form = CitaRecepcionForm(request.POST or None, request.FILES or None, instance=cita)
-    if request.method == "POST" and form.is_valid():
-        cita = form.save(commit=False)
-        agenda_nueva = (cita.medico_id, cita.fecha, cita.hora)
-        if agenda_nueva != agenda_anterior:
-            cita.estado = Cita.REAGENDADA
-            mensaje = "La cita fue reagendada y quedó pendiente de nueva confirmación."
-        else:
-            mensaje = "Los datos de la cita fueron actualizados."
-        cita.save()
-        if agenda_nueva != agenda_anterior:
-            try:
-                enviar_estado(cita)
-            except EmailError:
-                messages.warning(request, "La cita se reagendó, pero no fue posible enviar el correo.")
-        messages.success(request, mensaje)
-        return redirect("dashboard:recepcionista")
-    return render(request, "citas/recepcion_form.html", {"form": form, "titulo": "Reprogramar cita", "cita": cita, "bancos": Banco.objects.filter(activo=True)})
 
 
 @administrador_o_recepcionista
@@ -251,6 +231,31 @@ def revisar_pago(request, pk):
         destino = "dashboard:admin" if request.user.is_superuser or request.user.perfil.es_administrador else "dashboard:recepcionista"
         return redirect(destino)
     return render(request, "citas/revisar_pago.html", {"form": form, "cita": cita})
+
+
+@administrador_o_recepcionista
+def registrar_pago_efectivo(request, pk):
+    if request.method != "POST":
+        messages.error(request, "La operación de pago solicitada no es válida.")
+        return redirect("dashboard:recepcionista")
+    cita = get_object_or_404(Cita.objects.select_related("paciente"), pk=pk, metodo_pago=Cita.EFECTIVO)
+    if cita.estado in (Cita.CANCELADA, Cita.ATENDIDA):
+        messages.error(request, "No se puede registrar el pago de una cita cancelada o ya realizada.")
+        return redirect("dashboard:recepcionista")
+    if cita.estado_pago == Cita.APROBADO:
+        messages.info(request, "El pago en efectivo de esta cita ya estaba registrado.")
+        return redirect("dashboard:recepcionista")
+    cita.estado_pago = Cita.APROBADO
+    cita.observacion_pago = "Pago en efectivo recibido en recepción."
+    cita.pago_revisado_en = timezone.now()
+    cita.pago_revisado_por = request.user
+    cita.save(update_fields=["estado_pago", "observacion_pago", "pago_revisado_en", "pago_revisado_por"])
+    try:
+        enviar_estado_pago(cita)
+    except EmailError:
+        messages.warning(request, "El pago quedó registrado, pero no se pudo enviar el correo al paciente.")
+    messages.success(request, "Pago en efectivo registrado. La cita ya puede ser atendida cuando esté confirmada.")
+    return redirect("dashboard:recepcionista")
 
 
 @solo_administrador

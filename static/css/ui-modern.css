@@ -39,6 +39,7 @@ body { background: radial-gradient(circle at 95% 5%, rgb(8 125 139 / 7%), transp
 .transfer-help > i { font-size: 1.4rem; }.transfer-help small { display: block; margin-top: .2rem; color: #52727c; }
 [data-transfer-payment][hidden] { display: none !important; }
 .admin-bank-layout { display: grid; gap: 1.25rem; }.admin-bank-form { align-self: start; padding: clamp(1.25rem, 3vw, 2rem); background: #fff; border: 1px solid var(--clinic-line); border-radius: 1.25rem; box-shadow: var(--clinic-shadow); }.admin-bank-list { display: grid; gap: 1rem; }
+.admin-bank-list .bank-card { align-items: center; padding: .85rem 1rem; }.admin-bank-list .bank-card__qr { width: 4.5rem; }
 
 @keyframes toast-in { from { opacity: 0; transform: translate3d(2rem,0,0) scale(.97); } to { opacity: 1; transform: none; } }
 @keyframes toast-out { to { opacity: 0; transform: translate3d(2rem,0,0) scale(.97); } }

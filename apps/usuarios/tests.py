@@ -98,6 +98,17 @@ class UsuariosViewsTests(TestCase):
         recepcionista = get_user_model().objects.get(email="rosa@example.com")
         self.assertEqual(recepcionista.perfil.rol, Perfil.Rol.RECEPCIONISTA)
 
+        self.client.logout()
+        response = self.client.post(reverse("usuarios:login"), {
+            "username": "rosa@example.com", "password": self.password,
+        })
+        self.assertRedirects(response, reverse("dashboard:recepcionista"))
+
+    def test_login_no_sugiere_credenciales_guardadas(self):
+        response = self.client.get(reverse("usuarios:login"))
+        self.assertContains(response, 'autocomplete="off"')
+        self.assertContains(response, 'autocomplete="new-password"')
+
     def test_admin_de_rol_crea_medico_desde_funcion_independiente(self):
         admin = get_user_model().objects.create_user("admin-medicos", password=self.password)
         admin.perfil.rol = Perfil.Rol.ADMIN

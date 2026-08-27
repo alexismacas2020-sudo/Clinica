@@ -68,7 +68,7 @@ def dashboard_admin(request):
         "reporte_total_citas": total_citas_mes,
         "reporte_atendidas": atendidas_mes,
         "reporte_tasa_atencion": round(atendidas_mes * 100 / total_citas_mes) if total_citas_mes else 0,
-        "reporte_pagos_revision": citas_mes.filter(estado_pago=Cita.EN_REVISION).count(),
+        "reporte_pagos_revision": citas_mes.filter(estado_pago__in=[Cita.PAGO_PENDIENTE, Cita.EN_REVISION]).count(),
         "reporte_ingresos": citas_mes.filter(estado_pago=Cita.APROBADO).aggregate(total=Sum("valor_consulta"))["total"] or 0,
         "reporte_estados": estados_mes,
     }
@@ -100,6 +100,35 @@ def dashboard_recepcionista(request):
     comprobantes_pendientes = Cita.objects.filter(
         comprobante_pago__isnull=False, estado_pago=Cita.EN_REVISION
     ).exclude(comprobante_pago="").select_related("paciente", "paciente__perfil", "banco", "especialidad", "medico").order_by("creado_en")
+    pagos_efectivo_pendientes = citas.filter(
+        metodo_pago=Cita.EFECTIVO, estado_pago=Cita.PAGO_PENDIENTE
+    ).exclude(estado=Cita.CANCELADA).order_by("fecha", "hora")
+    pagos = citas.exclude(estado=Cita.CANCELADA).order_by("fecha", "hora")
+    filtro_pago = request.GET.get("pago", "pendientes")
+    if filtro_pago == "faltantes":
+        pagos = pagos.filter(estado_pago=Cita.PAGO_PENDIENTE)
+    elif filtro_pago == "realizados":
+        pagos = pagos.filter(estado_pago=Cita.APROBADO)
+    elif filtro_pago == "revision":
+        pagos = pagos.filter(estado_pago=Cita.EN_REVISION)
+    elif filtro_pago == "todos":
+        pass
+    else:
+        filtro_pago = "pendientes"
+        pagos = pagos.filter(estado_pago__in=[Cita.PAGO_PENDIENTE, Cita.EN_REVISION])
+    vista = request.GET.get("vista", "por_confirmar")
+    bandeja = citas.exclude(estado=Cita.CANCELADA).order_by("fecha", "hora")
+    if vista == "pendientes":
+        bandeja = bandeja.filter(estado_pago__in=[Cita.PAGO_PENDIENTE, Cita.EN_REVISION])
+    elif vista == "por_pagar":
+        bandeja = bandeja.filter(estado_pago=Cita.PAGO_PENDIENTE)
+    elif vista == "proximas":
+        bandeja = bandeja.exclude(estado=Cita.ATENDIDA)
+    elif vista == "todas":
+        pass
+    else:
+        vista = "por_confirmar"
+        bandeja = bandeja.filter(estado__in=[Cita.PENDIENTE, Cita.REAGENDADA])
     return render(request, "dashboard/recepcionista.html", {
         "perfil": request.user.perfil,
         "citas_hoy": citas.filter(fecha=hoy),
@@ -109,22 +138,40 @@ def dashboard_recepcionista(request):
         "confirmadas_hoy": citas.filter(fecha=hoy, estado=Cita.CONFIRMADA).count(),
         "total_pacientes": get_user_model().objects.filter(perfil__rol=Perfil.Rol.PACIENTE, perfil__activo=True, is_active=True).count(),
         "comprobantes_pendientes": comprobantes_pendientes,
+        "pagos_efectivo_pendientes": pagos_efectivo_pendientes,
+        "pagos_filtrados": pagos[:50],
+        "filtro_pago": filtro_pago,
+        "total_pagos_pendientes": citas.filter(estado_pago__in=[Cita.PAGO_PENDIENTE, Cita.EN_REVISION]).count(),
+        "total_pagos_faltantes": citas.filter(estado_pago=Cita.PAGO_PENDIENTE).count(),
+        "total_pagos_realizados": citas.filter(estado_pago=Cita.APROBADO).count(),
+        "bandeja": bandeja[:80],
+        "vista": vista,
+        "total_por_confirmar": citas.filter(estado__in=[Cita.PENDIENTE, Cita.REAGENDADA]).count(),
+        "total_proximas": citas.exclude(estado__in=[Cita.CANCELADA, Cita.ATENDIDA]).count(),
     })
 
 
 @solo_medico
 def dashboard_medico(request):
+    hoy = timezone.localdate()
     medico = Medico.objects.filter(usuario=request.user).first()
     citas = Cita.objects.none() if medico is None else Cita.objects.filter(medico=medico).select_related("paciente", "especialidad")
     historiales = HistorialClinico.objects.none() if medico is None else HistorialClinico.objects.filter(medico=medico, finalizado=True).select_related("paciente", "cita", "receta")
+    citas_hoy = citas.filter(fecha=hoy).exclude(estado=Cita.CANCELADA)
+    listas_hoy = citas_hoy.filter(estado=Cita.CONFIRMADA, estado_pago=Cita.APROBADO)
+    bloqueadas_hoy = citas_hoy.filter(estado=Cita.CONFIRMADA).exclude(estado_pago=Cita.APROBADO)
+    por_confirmar_hoy = citas_hoy.filter(estado__in=[Cita.PENDIENTE, Cita.REAGENDADA])
     return render(request, "dashboard/medico.html", {
         "perfil": request.user.perfil,
         "medico": medico,
-        "citas_hoy": citas.filter(fecha=timezone.localdate()),
-        "proximas_citas": citas.filter(fecha__gte=timezone.localdate()).exclude(estado__in=[Cita.ATENDIDA, Cita.CANCELADA])[:5],
+        "citas_hoy": citas_hoy,
+        "listas_hoy": listas_hoy,
+        "bloqueadas_hoy": bloqueadas_hoy,
+        "por_confirmar_hoy": por_confirmar_hoy,
+        "proximas_citas": citas.filter(fecha__gte=hoy).exclude(estado__in=[Cita.ATENDIDA, Cita.CANCELADA]).order_by("fecha", "hora")[:8],
         "historiales_recientes": historiales[:4],
         "total_realizadas": historiales.count(),
-        "confirmadas_hoy": citas.filter(fecha=timezone.localdate(), estado=Cita.CONFIRMADA).count(),
+        "confirmadas_hoy": listas_hoy.count(),
         "recetas_guardadas": 0 if medico is None else Receta.objects.filter(medico=medico).count(),
     })
 

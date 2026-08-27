@@ -51,9 +51,9 @@ class ConfiguracionEmergenciaTests(TestCase):
         pagina = self.client.get(reverse("pagina:contacto"))
         self.assertContains(pagina, "alexismacas2020@gmail.com")
         inicio = self.client.get(reverse("pagina:inicio"))
-        self.assertContains(inicio, "https://facebook.com/clinicareina")
-        self.assertContains(inicio, "https://instagram.com/clinicareina")
-        self.assertContains(inicio, "https://wa.me/593988128636")
+        self.assertNotContains(inicio, "https://facebook.com/clinicareina")
+        self.assertNotContains(inicio, "https://instagram.com/clinicareina")
+        self.assertNotContains(inicio, "https://wa.me/593988128636")
 
     def test_paciente_no_puede_modificar_contacto(self):
         paciente = get_user_model().objects.create_user("paciente-contacto", password="Clave123!")

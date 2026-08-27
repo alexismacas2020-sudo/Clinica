@@ -92,6 +92,9 @@ def atender_cita(request, pk):
     if cita.estado != Cita.CONFIRMADA:
         messages.error(request, "La cita debe estar confirmada antes de iniciar la atención.")
         return redirect("dashboard:medico")
+    if cita.estado_pago not in (Cita.APROBADO, Cita.NO_REQUERIDO):
+        messages.error(request, "No puedes iniciar la atención porque el pago de esta cita sigue pendiente.")
+        return redirect("dashboard:medico")
 
     borrador = HistorialClinico.objects.filter(cita=cita, medico=medico).first()
     campos = (

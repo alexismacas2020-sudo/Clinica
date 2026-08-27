@@ -39,8 +39,6 @@ class AgendarCitaForm(forms.ModelForm):
         self.fields["medico"].label_from_instance = lambda medico: f"{medico} · {medico.especialidad.nombre}"
         self.fields["banco"].queryset = Banco.objects.filter(activo=True)
         self.fields["banco"].empty_label = "Selecciona el banco de destino"
-        self.fields["metodo_pago"].required = False
-        self.fields["metodo_pago"].initial = Cita.EFECTIVO
         self.fields["comprobante_pago"].required = False
         self.fields["comprobante_pago"].help_text = "Para transferencia puedes subir el comprobante ahora o después."
 
@@ -57,7 +55,7 @@ class AgendarCitaForm(forms.ModelForm):
             conflicto = conflicto.exclude(pk=self.instance.pk)
         if medico and fecha and hora and conflicto.exists():
             self.add_error("hora", "Ese horario ya no está disponible. Elige otro.")
-        metodo = cleaned_data.get("metodo_pago") or Cita.EFECTIVO
+        metodo = cleaned_data.get("metodo_pago") or Cita.TRANSFERENCIA
         cleaned_data["metodo_pago"] = metodo
         if metodo == Cita.TRANSFERENCIA and not cleaned_data.get("banco"):
             self.add_error("banco", "Selecciona la cuenta bancaria a la que realizaste la transferencia.")
@@ -72,7 +70,7 @@ class AgendarCitaForm(forms.ModelForm):
             else:
                 cita.banco = None
                 cita.comprobante_pago = ""
-                cita.estado_pago = Cita.NO_REQUERIDO
+                cita.estado_pago = Cita.PAGO_PENDIENTE
                 cita.observacion_pago = ""
         if commit:
             cita.save()
@@ -82,6 +80,11 @@ class AgendarCitaForm(forms.ModelForm):
 
 class CitaRecepcionForm(AgendarCitaForm):
     paciente = forms.ModelChoiceField(queryset=get_user_model().objects.none())
+    pago_efectivo_recibido = forms.BooleanField(
+        required=False,
+        label="El pago en efectivo ya fue recibido",
+        help_text="Déjalo sin marcar para confirmar la cita con el pago pendiente.",
+    )
 
     class Meta(AgendarCitaForm.Meta):
         fields = ("paciente", "especialidad", "medico", "fecha", "hora", "motivo", "metodo_pago", "banco", "comprobante_pago")
@@ -90,6 +93,8 @@ class CitaRecepcionForm(AgendarCitaForm):
         super().__init__(*args, **kwargs)
         # El personal confirma estas condiciones directamente con el paciente.
         self.fields.pop("acepta_terminos", None)
+        self.fields["metodo_pago"].required = False
+        self.fields["metodo_pago"].initial = Cita.EFECTIVO
         self.fields["paciente"].queryset = get_user_model().objects.filter(
             perfil__rol=Perfil.Rol.PACIENTE,
             perfil__activo=True,
@@ -99,6 +104,27 @@ class CitaRecepcionForm(AgendarCitaForm):
         self.fields["paciente"].label_from_instance = lambda usuario: (
             f"{usuario.get_full_name() or usuario.username} · {usuario.email or 'sin correo'}"
         )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.data.get("metodo_pago"):
+            cleaned_data["metodo_pago"] = Cita.EFECTIVO
+            self.instance.metodo_pago = Cita.EFECTIVO
+        # Recepción puede registrar la cita y dejar que el paciente elija
+        # posteriormente la cuenta al enviar su comprobante.
+        if not cleaned_data.get("banco"):
+            self._errors.pop("banco", None)
+        return cleaned_data
+
+    def save(self, commit=True):
+        cita = super().save(commit=False)
+        if cita.metodo_pago == Cita.EFECTIVO:
+            cita.estado_pago = Cita.APROBADO if self.cleaned_data.get("pago_efectivo_recibido") else Cita.PAGO_PENDIENTE
+            cita.observacion_pago = "Pago en efectivo recibido en recepción." if cita.estado_pago == Cita.APROBADO else ""
+        if commit:
+            cita.save()
+            self.save_m2m()
+        return cita
 
 
 class ComprobantePagoForm(forms.ModelForm):

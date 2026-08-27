@@ -4,16 +4,6 @@
       <div class="col-lg-4">
         <a class="clinic-footer__brand" href="{% url 'pagina:inicio' %}"><i class="fa-solid fa-heart-pulse" aria-hidden="true"></i> Clínica Reina</a>
         <p class="clinic-footer__intro">Cuidamos tu salud con atención humana, tecnología moderna y profesionales especializados.</p>
-        {% if configuracion_contacto.facebook or configuracion_contacto.instagram or configuracion_contacto.whatsapp or configuracion_contacto.tiktok or configuracion_contacto.youtube or configuracion_contacto.linkedin %}
-        <div class="clinic-footer__social" aria-label="Redes sociales">
-          {% if configuracion_contacto.facebook %}<a href="{{ configuracion_contacto.facebook }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>{% endif %}
-          {% if configuracion_contacto.instagram %}<a href="{{ configuracion_contacto.instagram }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>{% endif %}
-          {% if configuracion_contacto.whatsapp %}<a href="{{ configuracion_contacto.whatsapp }}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>{% endif %}
-          {% if configuracion_contacto.tiktok %}<a href="{{ configuracion_contacto.tiktok }}" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>{% endif %}
-          {% if configuracion_contacto.youtube %}<a href="{{ configuracion_contacto.youtube }}" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>{% endif %}
-          {% if configuracion_contacto.linkedin %}<a href="{{ configuracion_contacto.linkedin }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>{% endif %}
-        </div>
-        {% endif %}
       </div>
       <div class="col-6 col-lg-2">
         <h2 class="clinic-footer__title">Explora</h2>

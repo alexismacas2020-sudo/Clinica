@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Count, Sum
@@ -17,9 +18,12 @@ def resumen(request):
     desde = request.GET.get("desde") or hoy.replace(day=1).isoformat()
     hasta = request.GET.get("hasta") or hoy.isoformat()
     try:
-        date.fromisoformat(desde)
-        date.fromisoformat(hasta)
+        fecha_desde = date.fromisoformat(desde)
+        fecha_hasta = date.fromisoformat(hasta)
+        if fecha_desde > fecha_hasta:
+            raise ValueError
     except ValueError:
+        messages.error(request, "El rango de fechas no es válido. Se mostró el periodo actual.")
         desde, hasta = hoy.replace(day=1).isoformat(), hoy.isoformat()
     citas = Cita.objects.filter(fecha__range=(desde, hasta)).select_related("paciente", "medico", "especialidad", "banco")
     total_citas = citas.count()
@@ -49,7 +53,7 @@ def resumen(request):
         "desde": desde, "hasta": hasta, "citas": citas.order_by("-fecha", "-hora")[:100],
         "total_citas": total_citas, "confirmadas": por_estado.get(Cita.CONFIRMADA, 0),
         "atendidas": por_estado.get(Cita.ATENDIDA, 0), "canceladas": por_estado.get(Cita.CANCELADA, 0),
-        "pagos_revision": citas.filter(estado_pago=Cita.EN_REVISION).count(),
+        "pagos_revision": citas.filter(estado_pago__in=[Cita.PAGO_PENDIENTE, Cita.EN_REVISION]).count(),
         "ingresos_aprobados": citas.filter(estado_pago=Cita.APROBADO).aggregate(total=Sum("valor_consulta"))["total"] or 0,
         "total_pacientes": get_user_model().objects.filter(perfil__rol=Perfil.Rol.PACIENTE, is_active=True).count(),
         "porcentaje_atendidas": round(por_estado.get(Cita.ATENDIDA, 0) * 100 / total_citas) if total_citas else 0,

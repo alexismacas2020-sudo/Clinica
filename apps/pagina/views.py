@@ -6,7 +6,6 @@ from django.shortcuts import redirect, render
 from apps.especialidades.models import Especialidad
 from apps.medicos.models import Medico
 from apps.configuracion.models import ConfiguracionContacto
-from apps.citas.models import Cita
 from .forms import ContactoForm
 
 
@@ -58,15 +57,8 @@ def servicios(request):
 
 
 def precios(request):
-    valor_consulta = Cita._meta.get_field("valor_consulta").get_default()
-    return render(
-        request,
-        "pagina/precios.html",
-        {
-            "valor_consulta": valor_consulta,
-            "especialidades": Especialidad.objects.filter(activo=True).order_by("nombre"),
-        },
-    )
+    # La tarifa se informa únicamente dentro del flujo autenticado de pago.
+    return redirect("citas:agendar")
 
 
 

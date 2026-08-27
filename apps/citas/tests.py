@@ -54,31 +54,10 @@ class RecepcionCitasTests(TestCase):
         cita.refresh_from_db()
         self.assertEqual(cita.estado, Cita.CONFIRMADA)
 
-    def test_recepcionista_verifica_y_reagenda_solo_en_horario_disponible(self):
-        cita = Cita.objects.create(paciente=self.paciente, especialidad=self.especialidad, medico=self.medico, fecha=self.fecha, hora="11:00", motivo="Control")
-        ocupada = Cita.objects.create(paciente=self.paciente, especialidad=self.especialidad, medico=self.medico, fecha=self.fecha, hora="12:00", motivo="Otra")
+    def test_recepcionista_no_tiene_opcion_de_reagendar(self):
         self.client.force_login(self.recepcionista)
-        response = self.client.get(reverse("citas:verificar_disponibilidad"), {
-            "medico": self.medico.pk, "fecha": self.fecha.isoformat(), "hora": "12:00", "excluir": cita.pk,
-        })
-        self.assertFalse(response.json()["disponible"])
-        response = self.client.post(reverse("citas:recepcion_editar", args=[cita.pk]), {
-            "paciente": self.paciente.pk, "especialidad": self.especialidad.pk, "medico": self.medico.pk,
-            "fecha": self.fecha.isoformat(), "hora": "12:00", "motivo": "Control",
-        })
-        self.assertEqual(response.status_code, 200)
-        cita.refresh_from_db()
-        self.assertEqual(cita.hora.strftime("%H:%M"), "11:00")
-        ocupada.estado = Cita.CANCELADA
-        ocupada.save(update_fields=["estado"])
-        response = self.client.post(reverse("citas:recepcion_editar", args=[cita.pk]), {
-            "paciente": self.paciente.pk, "especialidad": self.especialidad.pk, "medico": self.medico.pk,
-            "fecha": self.fecha.isoformat(), "hora": "12:00", "motivo": "Control",
-        })
-        self.assertRedirects(response, reverse("dashboard:recepcionista"))
-        cita.refresh_from_db()
-        self.assertEqual(cita.hora.strftime("%H:%M"), "12:00")
-        self.assertEqual(cita.estado, Cita.REAGENDADA)
+        response = self.client.get(reverse("dashboard:recepcionista"))
+        self.assertNotContains(response, "Reagendar")
 
     def test_recepcionista_puede_confirmar_cita_reagendada(self):
         cita = Cita.objects.create(

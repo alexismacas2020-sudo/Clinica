@@ -11,7 +11,7 @@ class EmailError(Exception):
 
 
 def enviar_correo(destinatario, asunto, mensaje, adjuntos=None):
-    if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+    if settings.EMAIL_BACKEND.lower().endswith("smtp.emailbackend") and (not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD):
         raise EmailError("El correo de la clínica no está configurado.")
     try:
         correo = EmailMessage(asunto, mensaje, settings.DEFAULT_FROM_EMAIL, [destinatario])

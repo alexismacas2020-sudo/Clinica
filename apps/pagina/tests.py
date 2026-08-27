@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from django.test import TestCase
 from django.urls import reverse
 from django.core import mail
@@ -7,13 +5,9 @@ from django.test import override_settings
 
 
 class PaginaPreciosTests(TestCase):
-    def test_pagina_de_precios_es_publica_y_muestra_tarifa(self):
+    def test_pagina_de_precios_redirige_al_flujo_de_pago(self):
         response = self.client.get(reverse("pagina:precios"))
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["valor_consulta"], Decimal("30.00"))
-        self.assertContains(response, "no genera ninguna reserva")
-        self.assertContains(response, "30,00")
+        self.assertRedirects(response, reverse("citas:agendar"), fetch_redirect_response=False)
 
 
 @override_settings(

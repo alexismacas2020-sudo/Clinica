@@ -12,10 +12,8 @@ class Cita(models.Model):
     TRANSFERENCIA = "TRANSFERENCIA"
     SEGURO = "SEGURO"
     METODOS_PAGO = [
-        (EFECTIVO, "Efectivo en la clínica"),
-        (TARJETA, "Tarjeta débito o crédito"),
         (TRANSFERENCIA, "Transferencia bancaria"),
-        (SEGURO, "Seguro médico"),
+        (EFECTIVO, "Efectivo en la clínica"),
     ]
     NO_REQUERIDO = "NO_REQUERIDO"
     PAGO_PENDIENTE = "PENDIENTE"
@@ -23,10 +21,10 @@ class Cita(models.Model):
     APROBADO = "APROBADO"
     RECHAZADO = "RECHAZADO"
     ESTADOS_PAGO = [
-        (NO_REQUERIDO, "Pago en clínica"),
-        (PAGO_PENDIENTE, "Pendiente de comprobante"),
+        (NO_REQUERIDO, "No requiere pago"),
+        (PAGO_PENDIENTE, "Pago pendiente"),
         (EN_REVISION, "En revisión"),
-        (APROBADO, "Aprobado"),
+        (APROBADO, "Pago realizado"),
         (RECHAZADO, "Rechazado"),
     ]
     PENDIENTE = "PENDIENTE"
@@ -57,7 +55,7 @@ class Cita(models.Model):
     confirmacion_email_enviada = models.BooleanField(default=False)
     fecha_confirmacion_email = models.DateTimeField(null=True, blank=True)
     error_confirmacion_email = models.TextField(blank=True)
-    metodo_pago = models.CharField(max_length=20, choices=METODOS_PAGO, default=EFECTIVO)
+    metodo_pago = models.CharField(max_length=20, choices=METODOS_PAGO, default=TRANSFERENCIA)
     banco = models.ForeignKey("Banco", on_delete=models.PROTECT, related_name="citas", null=True, blank=True)
     comprobante_pago = models.FileField(upload_to="pagos/comprobantes/%Y/%m/", blank=True)
     estado_pago = models.CharField(max_length=20, choices=ESTADOS_PAGO, default=NO_REQUERIDO)
@@ -85,6 +83,9 @@ class Cita(models.Model):
     def __str__(self):
         return f"{self.fecha} {self.hora} - {self.medico}"
 
+    @property
+    def pago_realizado(self):
+        return self.estado_pago == self.APROBADO
 
 class Banco(models.Model):
     nombre = models.CharField(max_length=100, unique=True)

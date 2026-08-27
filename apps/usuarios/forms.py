@@ -14,8 +14,8 @@ from .validators import normalizar_telefono_ecuador, validar_cedula_ecuatoriana
 
 
 class InicioSesionForm(AuthenticationForm):
-    username = forms.CharField(label="Usuario o correo electrónico", error_messages={"required": "Ingresa tu usuario o correo electrónico."}, widget=forms.TextInput(attrs={"autofocus": True}))
-    password = forms.CharField(label="Contraseña", strip=False, error_messages={"required": "Ingresa tu contraseña."}, widget=forms.PasswordInput(attrs={"data-password-input": ""}))
+    username = forms.CharField(label="Usuario o correo electrónico", error_messages={"required": "Ingresa tu usuario o correo electrónico."}, widget=forms.TextInput(attrs={"autofocus": True, "autocomplete": "off"}))
+    password = forms.CharField(label="Contraseña", strip=False, error_messages={"required": "Ingresa tu contraseña."}, widget=forms.PasswordInput(attrs={"data-password-input": "", "autocomplete": "new-password"}))
     recordarme = forms.BooleanField(required=False, label="Recordarme")
 
     def clean(self):

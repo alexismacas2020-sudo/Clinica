@@ -17,7 +17,7 @@ class ConfiguracionContactoForm(forms.ModelForm):
         model = ConfiguracionContacto
         fields = (
             "titulo", "descripcion", "telefono", "correo", "ubicacion", "horario", "enlace_mapa",
-            "facebook", "instagram", "whatsapp", "tiktok", "youtube", "linkedin", "activo",
+            "activo",
         )
         widgets = {"descripcion": forms.Textarea(attrs={"rows": 3})}
 

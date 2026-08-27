@@ -3,7 +3,7 @@
 {% block css %}<link rel="stylesheet" href="{% static 'css/autenticacion.css' %}"><link rel="stylesheet" href="{% static 'css/login-reference.css' %}">{% endblock %}
 {% block content %}<section class="login-reference"><div class="login-reference__card">
   <header><h1>Bienvenido de nuevo</h1><p>Ingresa tus credenciales para acceder al sistema</p></header>
-  <form method="post" novalidate data-auth-form>{% csrf_token %}{{ form.non_field_errors }}
+  <form method="post" novalidate data-auth-form autocomplete="off">{% csrf_token %}{{ form.non_field_errors }}
     {{ form.username|as_crispy_field }}
     <div class="password-wrap">{{ form.password|as_crispy_field }}<button type="button" data-password-toggle aria-label="Mostrar contraseña"><i class="fa-regular fa-eye"></i></button></div>
     <div class="login-options">{{ form.recordarme|as_crispy_field }}<a href="{% url 'usuarios:password_reset' %}">¿Olvidaste tu contraseña?</a></div>
