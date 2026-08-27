@@ -8,17 +8,21 @@ from django.db import transaction
 class Command(BaseCommand):
     help = "Crea o actualiza el administrador definido mediante variables de entorno."
 
-    def handle(self, *args, **options):
-        username = os.environ.get("DJANGO_ADMIN_USERNAME", "").strip()
-        email = os.environ.get("DJANGO_ADMIN_EMAIL", "").strip().lower()
-        password = os.environ.get("DJANGO_ADMIN_PASSWORD", "")
+    LOCAL_ADMIN_USERNAME = "ADMIN"
+    LOCAL_ADMIN_EMAIL = "ADMIN@gmail.com"
+    LOCAL_ADMIN_PASSWORD_HASH = (
+        "pbkdf2_sha256$1200000$BmGw6l3b12ADoJZj98RGNB$"
+        "cMdw1+ePzOGCwAqN2hhguatVb/IUV7shzv7rq/wCPmA="
+    )
 
-        if not username or not email or not password:
-            self.stdout.write(
-                "Administrador omitido: configura DJANGO_ADMIN_USERNAME, "
-                "DJANGO_ADMIN_EMAIL y DJANGO_ADMIN_PASSWORD."
-            )
-            return
+    def handle(self, *args, **options):
+        username = os.environ.get(
+            "DJANGO_ADMIN_USERNAME", self.LOCAL_ADMIN_USERNAME
+        ).strip()
+        email = os.environ.get(
+            "DJANGO_ADMIN_EMAIL", self.LOCAL_ADMIN_EMAIL
+        ).strip()
+        password = os.environ.get("DJANGO_ADMIN_PASSWORD", "")
 
         User = get_user_model()
         with transaction.atomic():
@@ -30,7 +34,11 @@ class Command(BaseCommand):
             user.is_active = True
             user.is_staff = True
             user.is_superuser = True
-            user.set_password(password)
+            if password:
+                user.set_password(password)
+            else:
+                # Conserva la misma contraseña de la cuenta local transferida.
+                user.password = self.LOCAL_ADMIN_PASSWORD_HASH
             user.save()
 
             # La señal de usuarios crea el perfil; si ya existía, lo reactiva.
