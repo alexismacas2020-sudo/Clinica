@@ -274,12 +274,22 @@ class CrearCredencialPersonalForm(forms.Form):
     apellidos = forms.CharField(max_length=150)
     email = forms.EmailField(label="Correo electrónico")
     telefono = forms.CharField(max_length=20, required=False)
+    foto = forms.ImageField(
+        label="Foto de perfil",
+        required=False,
+        help_text="Formato JPG, PNG o WEBP. Tamaño máximo: 5 MB.",
+        widget=forms.ClearableFileInput(attrs={"accept": "image/jpeg,image/png,image/webp", "data-photo-input": ""}),
+    )
     especialidad = forms.ModelChoiceField(
         queryset=Especialidad.objects.none(), required=False
     )
     registro_profesional = forms.CharField(max_length=50, required=False)
     consultorio = forms.CharField(max_length=100, required=False)
-    password = forms.CharField(label="Contraseña temporal", widget=forms.PasswordInput)
+    password = forms.CharField(
+        label="Contraseña temporal",
+        help_text="El administrador puede verla antes de crear la cuenta.",
+        widget=forms.PasswordInput(render_value=True, attrs={"data-credential-password": "", "autocomplete": "new-password"}),
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -310,6 +320,12 @@ class CrearCredencialPersonalForm(forms.Form):
         password = self.cleaned_data["password"]
         validate_password(password)
         return password
+
+    def clean_foto(self):
+        foto = self.cleaned_data.get("foto")
+        if foto and foto.size > 5 * 1024 * 1024:
+            raise ValidationError("La foto no puede superar 5 MB.")
+        return foto
 
     def clean_registro_profesional(self):
         registro = self.cleaned_data.get("registro_profesional", "").strip()
@@ -345,7 +361,9 @@ class CrearCredencialPersonalForm(forms.Form):
         perfil = usuario.perfil
         perfil.rol = datos["rol"]
         perfil.telefono = datos["telefono"]
-        perfil.save(update_fields=["rol", "telefono"])
+        if datos.get("foto"):
+            perfil.foto = datos["foto"]
+        perfil.save(update_fields=["rol", "telefono", "foto"])
         if datos["rol"] == Perfil.Rol.MEDICO:
             Medico.objects.create(
                 usuario=usuario,

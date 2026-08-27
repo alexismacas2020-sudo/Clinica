@@ -37,7 +37,7 @@ def dashboard_admin(request):
         for codigo, nombre in Cita.ESTADOS
         if (total := citas_mes.filter(estado=codigo).count())
     ]
-    credencial_form = CrearCredencialPersonalForm(request.POST or None)
+    credencial_form = CrearCredencialPersonalForm(request.POST or None, request.FILES or None)
     if request.method == "POST" and request.POST.get("accion") == "crear_credencial":
         if credencial_form.is_valid():
             usuario = credencial_form.save()
@@ -77,7 +77,7 @@ def dashboard_admin(request):
 
 @solo_administrador
 def crear_credencial(request):
-    form = CrearCredencialPersonalForm(request.POST or None)
+    form = CrearCredencialPersonalForm(request.POST or None, request.FILES or None)
     if request.method == "POST" and form.is_valid():
         usuario = form.save()
         messages.success(
