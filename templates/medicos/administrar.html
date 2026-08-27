@@ -1,6 +1,6 @@
 {% extends "base.html" %}{% load static %}
 {% block title %}Gestionar médicos | Administración{% endblock %}
-{% block css %}<link rel="stylesheet" href="{% static 'css/roles_dashboard.css' %}"><link rel="stylesheet" href="{% static 'css/medicos-admin.css' %}?v=20260826-1">{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/roles_dashboard.css' %}"><link rel="stylesheet" href="{% static 'css/medicos-admin.css' %}?v=20260827-2"><link rel="stylesheet" href="{% static 'css/medicos-admin-portraits.css' %}?v=20260827-1">{% endblock %}
 {% block content %}
 <section class="role-dashboard doctors-admin"><div class="container py-5">
   <header class="role-header"><div><p>ADMINISTRACIÓN</p><h1>Equipo médico</h1><span>Consulta, edita y controla qué profesionales aparecen en la plataforma.</span></div><div class="doctors-admin__header-actions"><a class="btn btn-outline-light" href="{% url 'dashboard:admin' %}">Volver al panel</a><a class="btn btn-light" href="{% url 'usuarios:crear_medico' %}"><i class="fa-solid fa-user-plus me-2"></i>Nuevo médico</a></div></header>

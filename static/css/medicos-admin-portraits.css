@@ -1,0 +1,44 @@
+/* Retratos con proporción editorial para evitar recortes agresivos de rostro y hombros. */
+.doctor-admin-card__photo {
+  min-height: 15rem;
+  background: linear-gradient(145deg, #edf8f8, #dceff1);
+}
+
+.doctor-admin-card__photo img {
+  min-height: 15rem;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: center 22%;
+  transition: transform .35s ease;
+}
+
+.doctor-admin-card:hover .doctor-admin-card__photo img { transform: scale(1.025); }
+
+.doctor-admin-card__photo::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 28%;
+  background: linear-gradient(transparent, rgb(8 47 73 / 18%));
+  content: "";
+  pointer-events: none;
+}
+
+.doctor-admin-card__photo .status-badge {
+  z-index: 1;
+  box-shadow: 0 3px 10px rgb(8 47 73 / 12%);
+}
+
+.doctor-edit-preview > img {
+  padding: .2rem;
+  object-position: center 22%;
+  background: #fff;
+  border: 3px solid #d9eeee;
+  box-shadow: 0 8px 24px rgb(18 60 90 / 14%);
+}
+
+@media (max-width: 575.98px) {
+  .doctor-admin-card__photo,
+  .doctor-admin-card__photo img { min-height: 17rem; }
+}

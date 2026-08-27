@@ -1,6 +1,6 @@
 {% extends "base.html" %}{% load static crispy_forms_tags %}
 {% block title %}Editar {{ medico }} | Administración{% endblock %}
-{% block css %}<link rel="stylesheet" href="{% static 'css/roles_dashboard.css' %}"><link rel="stylesheet" href="{% static 'css/medicos-admin.css' %}?v=20260826-1">{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/roles_dashboard.css' %}"><link rel="stylesheet" href="{% static 'css/medicos-admin.css' %}?v=20260827-2"><link rel="stylesheet" href="{% static 'css/medicos-admin-portraits.css' %}?v=20260827-1">{% endblock %}
 {% block content %}
 <section class="role-dashboard doctors-admin"><div class="container py-5">
   <header class="role-header"><div><p>PERFIL PROFESIONAL</p><h1>Editar médico</h1><span>Actualiza la información pública, agenda y fotografía de {{ medico }}.</span></div><a class="btn btn-light" href="{% url 'medicos:administrar' %}">Volver a médicos</a></header>
