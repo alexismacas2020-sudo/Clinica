@@ -37,6 +37,7 @@ TEMPLATES = [
 
                 "apps.usuarios.context_processors.usuario_contexto",
                 "apps.configuracion.context_processors.emergencia_contexto",
+                "apps.configuracion.context_processors.contacto_contexto",
 
             ],
 

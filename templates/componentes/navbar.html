@@ -29,6 +29,7 @@
               <li><a class="dropdown-item" href="{% url 'usuarios:perfil' %}"><i class="fa-regular fa-user" aria-hidden="true"></i> Mi perfil</a></li>
               {% if user.is_superuser or perfil_actual.es_administrador %}
               <li><a class="dropdown-item" href="{% url 'dashboard:crear_credencial' %}"><i class="fa-solid fa-key" aria-hidden="true"></i> Crear credenciales</a></li>
+              <li><a class="dropdown-item" href="{% url 'medicos:administrar' %}"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i> Gestionar médicos</a></li>
               <li><a class="dropdown-item" href="{% url 'usuarios:admin_usuarios' %}"><i class="fa-solid fa-users-gear" aria-hidden="true"></i> Gestionar usuarios</a></li>
               <li><a class="dropdown-item" href="{% url 'citas:administrar_bancos' %}"><i class="fa-solid fa-building-columns" aria-hidden="true"></i> Cuentas y códigos QR</a></li>
               <li><a class="dropdown-item" href="{% url 'especialidades:administrar' %}"><i class="fa-solid fa-stethoscope" aria-hidden="true"></i> Especialidades y fotos</a></li>

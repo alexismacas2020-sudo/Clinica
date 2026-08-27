@@ -1,23 +1,24 @@
-{% extends 'base.html' %}{% load crispy_forms_tags %}
+{% extends 'base.html' %}{% load static crispy_forms_tags %}
 {% block title %}Gestionar especialidades | Clínica Reina{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/roles_dashboard.css' %}"><link rel="stylesheet" href="{% static 'css/especialidades-admin.css' %}?v=20260826-1">{% endblock %}
 {% block content %}
-<section class="role-dashboard"><div class="container py-5">
+<section class="role-dashboard specialties-admin"><div class="container py-5">
   <header class="role-header"><div><p>ADMINISTRACIÓN</p><h1>Especialidades e imágenes</h1><span>Agrega, actualiza, publica o retira las áreas médicas sin afectar su historial.</span></div><a class="btn btn-light" href="{% url 'dashboard:admin' %}">Volver al panel</a></header>
-  <div class="row g-4 mt-1">
-    <div class="col-lg-4"><section class="role-card"><header><h2>Nueva especialidad</h2></header><div class="p-4"><form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}{{ form|crispy }}<button class="btn btn-primary w-100" type="submit" data-loading-text="Guardando…"><i class="fa-solid fa-plus me-2"></i>Agregar</button></form></div></section></div>
-    <div class="col-lg-8"><section class="role-card"><header><h2>Especialidades registradas</h2><span>{{ especialidades|length }} registros</span></header><div class="table-responsive"><table class="table align-middle mb-0 reception-table"><thead><tr><th>Foto</th><th>Nombre</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+  <div class="specialties-admin__layout mt-4">
+    <aside><section class="role-card specialties-admin__form"><header><div><small>NUEVO REGISTRO</small><h2>Nueva especialidad</h2></div></header><div class="p-4"><form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}{{ form|crispy }}<button class="btn btn-primary w-100" type="submit" data-loading-text="Guardando…"><i class="fa-solid fa-plus me-2"></i>Agregar especialidad</button></form></div></section></aside>
+    <section class="role-card specialties-admin__list"><header><div><small>CATÁLOGO MÉDICO</small><h2>Especialidades registradas</h2></div><span>{{ especialidades|length }} registros</span></header><div class="table-responsive"><table class="table align-middle mb-0 reception-table"><thead><tr><th>Imagen</th><th>Especialidad</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead><tbody>
       {% for especialidad in especialidades %}<tr>
         <td>{% if especialidad.imagen %}<img src="{{ especialidad.imagen.url }}" alt="Foto de {{ especialidad.nombre }}" class="specialty-admin-thumb">{% else %}<span class="specialty-admin-placeholder"><i class="fa-solid fa-stethoscope"></i></span>{% endif %}</td>
         <td><strong>{{ especialidad.nombre }}</strong><small>{{ especialidad.descripcion|default:"Sin descripción"|truncatechars:80 }}</small></td>
         <td><span class="status-badge {% if especialidad.activo %}status-confirmada{% else %}status-cancelada{% endif %}">{% if especialidad.activo %}Activa{% else %}Inactiva{% endif %}</span></td>
-        <td><div class="reception-actions">
-          <a class="btn btn-sm btn-outline-primary" href="{% url 'especialidades:editar' especialidad.pk %}" title="Editar datos o cambiar foto"><i class="fa-solid fa-pen"></i></a>
+        <td><div class="reception-actions justify-content-end">
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'especialidades:editar' especialidad.pk %}" title="Editar datos o cambiar foto"><i class="fa-solid fa-pen"></i><span>Editar</span></a>
           {% if especialidad.imagen %}<form method="post" action="{% url 'especialidades:quitar_imagen' especialidad.pk %}" onsubmit="return confirm('¿Quitar la foto de esta especialidad?');">{% csrf_token %}<button class="btn btn-sm btn-outline-warning" type="submit" title="Quitar foto"><i class="fa-regular fa-image"></i></button></form>{% endif %}
           <form method="post" action="{% url 'especialidades:cambiar_activo' especialidad.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary" type="submit" title="{% if especialidad.activo %}Quitar de la agenda{% else %}Habilitar{% endif %}"><i class="fa-solid {% if especialidad.activo %}fa-eye-slash{% else %}fa-eye{% endif %}"></i></button></form>
           <form method="post" action="{% url 'especialidades:eliminar' especialidad.pk %}" onsubmit="return confirm('¿Eliminar definitivamente esta especialidad?');">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" type="submit" title="Eliminar"><i class="fa-solid fa-trash"></i></button></form>
         </div></td>
       </tr>{% empty %}<tr><td colspan="4" class="empty-role text-center">No hay especialidades registradas.</td></tr>{% endfor %}
-    </tbody></table></div></section></div>
+    </tbody></table></div></section>
   </div>
 </div></section>
 {% endblock %}

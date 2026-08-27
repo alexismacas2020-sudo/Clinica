@@ -30,13 +30,21 @@ CSRF_TRUSTED_ORIGINS = list(dict.fromkeys([
 # Render termina HTTPS en su proxy y envia este encabezado a Django.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 3600
 
 # WhiteNoise sirve los archivos generados por collectstatic.
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
+CLOUDINARY_URL = env("CLOUDINARY_URL", default="").strip()
+
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": (
+            "cloudinary_storage.storage.MediaCloudinaryStorage"
+            if CLOUDINARY_URL
+            else "django.core.files.storage.FileSystemStorage"
+        ),
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",

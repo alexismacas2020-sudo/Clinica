@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% load static crispy_forms_tags %}
+{% block title %}Editar {{ medico }} | Administración{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/roles_dashboard.css' %}"><link rel="stylesheet" href="{% static 'css/medicos-admin.css' %}?v=20260826-1">{% endblock %}
+{% block content %}
+<section class="role-dashboard doctors-admin"><div class="container py-5">
+  <header class="role-header"><div><p>PERFIL PROFESIONAL</p><h1>Editar médico</h1><span>Actualiza la información pública, agenda y fotografía de {{ medico }}.</span></div><a class="btn btn-light" href="{% url 'medicos:administrar' %}">Volver a médicos</a></header>
+  <div class="doctors-admin__edit-layout mt-4"><aside class="role-card"><div class="doctor-edit-preview">{% if medico.foto_publica %}<img src="{{ medico.foto_publica.url }}" alt="Foto actual de {{ medico }}">{% else %}<i class="fa-solid fa-user-doctor"></i>{% endif %}<h2>{{ medico.nombres }} {{ medico.apellidos }}</h2><p>{{ medico.especialidad.nombre }}</p><span class="status-badge {% if medico.activo %}status-confirmada{% else %}status-cancelada{% endif %}">{% if medico.activo %}Publicado{% else %}Oculto{% endif %}</span></div></aside><section class="role-card"><header><div><small>DATOS DEL MÉDICO</small><h2>Información profesional</h2></div></header><div class="p-4 p-lg-5"><form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}{{ form|crispy }}<div class="d-flex flex-wrap gap-2"><button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk me-2"></i>Guardar cambios</button><a class="btn btn-outline-secondary" href="{% url 'medicos:administrar' %}">Cancelar</a></div></form></div></section></div>
+</div></section>
+{% endblock %}

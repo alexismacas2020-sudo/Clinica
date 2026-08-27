@@ -29,10 +29,15 @@ def _horarios_libres(medico, fecha, excluir=None):
         ocupadas = ocupadas.exclude(pk=excluir)
     ocupadas = {hora.strftime("%H:%M") for hora in ocupadas.values_list("hora", flat=True)}
     horarios = []
-    # Bloques de una hora, con pausa entre las 12:00 y las 14:00.
-    for hora in (*range(8, 13), *range(14, 18)):
-        minuto = hora * 60
-        valor = f"{hora:02d}:00"
+    duracion = max(medico.duracion_consulta, 1)
+    # Jornada de 08:00 a 13:00 y de 14:00 a 18:00.
+    minutos_jornada = (
+        *range(8 * 60, 13 * 60, duracion),
+        *range(14 * 60, 18 * 60, duracion),
+    )
+    for minuto in minutos_jornada:
+        hora, minutos = divmod(minuto, 60)
+        valor = f"{hora:02d}:{minutos:02d}"
         es_futuro = fecha > hoy or minuto > minuto_actual
         if valor not in ocupadas and es_futuro:
             horarios.append(valor)
