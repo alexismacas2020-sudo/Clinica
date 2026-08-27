@@ -1,3 +1,5 @@
+import logging
+
 from django.shortcuts import render
 
 from django.contrib import messages
@@ -15,6 +17,19 @@ from .forms import AgendarCitaForm, BancoForm, CitaRecepcionForm, ComprobantePag
 from .models import Banco, Cita
 from .services.email_service import enviar_estado, enviar_estado_pago
 from apps.usuarios.services.email_service import EmailError
+
+
+logger = logging.getLogger(__name__)
+
+
+def _enviar_estado_sin_interrumpir(cita, estado_anterior=None):
+    """El correo nunca debe impedir guardar o actualizar una cita."""
+    try:
+        enviar_estado(cita, estado_anterior)
+    except Exception:
+        logger.exception("No fue posible enviar el correo de la cita %s.", cita.pk)
+        return False
+    return True
 
 
 def _horarios_libres(medico, fecha, excluir=None):
@@ -92,7 +107,13 @@ def agendar(request):
         cita.paciente = request.user
         cita.full_clean()
         cita.save()
-        messages.success(request, "¡Cita agendada con éxito! Tu solicitud quedó registrada y está pendiente de validación por recepción.")
+        if _enviar_estado_sin_interrumpir(cita):
+            messages.success(request, "¡Cita agendada con éxito! Tu solicitud quedó pendiente de confirmación.")
+        else:
+            messages.warning(
+                request,
+                "La cita se agendó correctamente. El correo está temporalmente fuera de servicio.",
+            )
         return redirect("citas:mis_citas")
     if request.method == "POST":
         messages.error(request, "No se pudo agendar la cita. Revisa los campos marcados y vuelve a intentarlo.")
@@ -149,15 +170,12 @@ def cambiar_estado(request, pk, estado):
         cita.estado = estado
         cita.save(update_fields=["estado"])
         if estado != estado_anterior:
-            correo_enviado = True
-            try:
-                enviar_estado(cita, estado_anterior)
-            except EmailError as exc:
-                correo_enviado = False
+            correo_enviado = _enviar_estado_sin_interrumpir(cita, estado_anterior)
+            if not correo_enviado:
                 if estado == Cita.CONFIRMADA:
                     cita.confirmacion_email_enviada = False
                     cita.fecha_confirmacion_email = None
-                    cita.error_confirmacion_email = str(exc)
+                    cita.error_confirmacion_email = "El correo está temporalmente fuera de servicio."
                     cita.save(update_fields=[
                         "confirmacion_email_enviada",
                         "fecha_confirmacion_email",
@@ -176,11 +194,11 @@ def cambiar_estado(request, pk, estado):
             if correo_enviado:
                 messages.success(request, f"La cita quedó {cita.get_estado_display().lower()} correctamente.")
             elif estado == Cita.CONFIRMADA:
-                messages.warning(request, "La cita fue aceptada, pero no pudimos enviar el correo al paciente.")
+                messages.warning(request, "La cita fue aceptada. El correo está temporalmente fuera de servicio.")
             else:
                 messages.warning(
                     request,
-                    f"La cita quedó {cita.get_estado_display().lower()}, pero no pudimos enviar el correo al paciente.",
+                    f"La cita quedó {cita.get_estado_display().lower()}. El correo está temporalmente fuera de servicio.",
                 )
         else:
             messages.info(request, f"La cita ya estaba {cita.get_estado_display().lower()}.")
