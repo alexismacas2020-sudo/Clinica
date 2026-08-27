@@ -36,6 +36,17 @@ class ConfiguracionEmergenciaTests(TestCase):
         self.client.force_login(paciente)
         self.assertEqual(self.client.get(reverse("configuracion:emergencias")).status_code, 403)
 
+    def test_aviso_de_emergencia_carga_control_para_cerrarlo(self):
+        ConfiguracionEmergencia.objects.create(
+            titulo="¿Necesitas ayuda urgente?",
+            mensaje="Comunícate con emergencias.",
+            telefono="911",
+            activo=True,
+        )
+        pagina = self.client.get(reverse("pagina:inicio"))
+        self.assertContains(pagina, "data-emergency-greeting-close")
+        self.assertContains(pagina, "js/emergencia-bot.js")
+
     def test_admin_modifica_contacto_y_se_publica(self):
         respuesta = self.client.post(reverse("configuracion:contacto"), {
             "titulo": "Contáctanos", "descripcion": "Estamos para ayudarte.",
