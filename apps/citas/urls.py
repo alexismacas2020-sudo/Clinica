@@ -5,6 +5,7 @@ from . import views
 app_name = "citas"
 
 urlpatterns = [
+    path("administracion/prueba-email/", views.prueba_email, name="prueba_email"),
     path("agendar/", views.agendar, name="agendar"),
     path("mis-citas/", views.mis_citas, name="mis_citas"),
     path("disponibilidad/calendario/", views.calendario_disponibilidad, name="calendario_disponibilidad"),

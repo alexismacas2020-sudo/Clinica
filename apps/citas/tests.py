@@ -14,6 +14,26 @@ from .models import Cita
 from .tasks import enviar_recordatorios_email
 
 
+class PruebaEmailViewTests(TestCase):
+    def setUp(self):
+        self.admin = get_user_model().objects.create_superuser(
+            "admin-email", "admin@example.com", "Clave123!"
+        )
+
+    def test_exige_autenticacion(self):
+        respuesta = self.client.get(reverse("citas:prueba_email"))
+        self.assertEqual(respuesta.status_code, 302)
+
+    @patch("apps.citas.views.enviar_correo")
+    def test_admin_puede_enviar_prueba(self, enviar_correo):
+        enviar_correo.return_value = {"message_id": "prueba-1", "estado": "sent"}
+        self.client.force_login(self.admin)
+        respuesta = self.client.post(reverse("citas:prueba_email"))
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Correo enviado correctamente")
+        enviar_correo.assert_called_once()
+
+
 class RecepcionCitasTests(TestCase):
     def setUp(self):
         User = get_user_model()
@@ -94,12 +114,15 @@ class RecepcionCitasTests(TestCase):
         self.assertEqual(ids, [self.medico.pk])
 
 
-class AvisoNuevaCitaTests(TestCase):
+class FlujoAgendamientoSinCorreoTests(TestCase):
     def setUp(self):
         User = get_user_model()
         self.paciente = User.objects.create_user(
             "paciente-aviso", email="paciente@example.com", password="Clave123!"
         )
+        self.recepcionista = User.objects.create_user("recepcion-flujo", password="Clave123!")
+        self.recepcionista.perfil.rol = Perfil.Rol.RECEPCIONISTA
+        self.recepcionista.perfil.save(update_fields=["rol"])
         self.especialidad = Especialidad.objects.create(nombre="Medicina general")
         self.medico = Medico.objects.create(
             especialidad=self.especialidad,
@@ -111,9 +134,9 @@ class AvisoNuevaCitaTests(TestCase):
         while self.fecha.weekday() >= 5:
             self.fecha += timedelta(days=1)
 
-    @patch("apps.citas.views.enviar_aviso_nueva_cita_clinica")
-    @patch("apps.citas.views.enviar_estado")
-    def test_agendamiento_avisa_al_paciente_y_a_la_clinica(self, enviar_estado, enviar_aviso):
+    @patch("apps.citas.services.email_service.enviar_estado")
+    @patch("apps.citas.views.enviar_estado_pago")
+    def test_agendamiento_registra_cita_sin_intentar_enviar_correo(self, enviar_pago, enviar_estado):
         self.client.force_login(self.paciente)
         response = self.client.post(reverse("citas:agendar"), {
             "especialidad": self.especialidad.pk,
@@ -127,12 +150,11 @@ class AvisoNuevaCitaTests(TestCase):
 
         self.assertRedirects(response, reverse("citas:mis_citas"))
         cita = Cita.objects.get(paciente=self.paciente)
-        enviar_estado.assert_called_once_with(cita)
-        enviar_aviso.assert_called_once_with(cita)
+        self.assertEqual(cita.estado, Cita.PENDIENTE)
+        enviar_estado.assert_not_called()
+        enviar_pago.assert_not_called()
 
-    @patch("apps.citas.views.enviar_aviso_nueva_cita_clinica", side_effect=RuntimeError("fallo inesperado"))
-    @patch("apps.citas.views.enviar_estado", side_effect=RuntimeError("fallo inesperado"))
-    def test_error_inesperado_de_notificacion_no_produce_error_500(self, enviar_estado, enviar_aviso):
+    def test_cita_agendada_aparece_en_recepcion_y_puede_confirmarse(self):
         self.client.force_login(self.paciente)
         response = self.client.post(reverse("citas:agendar"), {
             "especialidad": self.especialidad.pk,
@@ -145,7 +167,17 @@ class AvisoNuevaCitaTests(TestCase):
         })
 
         self.assertRedirects(response, reverse("citas:mis_citas"))
-        self.assertTrue(Cita.objects.filter(paciente=self.paciente, hora="10:30").exists())
+        cita = Cita.objects.get(paciente=self.paciente, hora="10:30")
+
+        self.client.force_login(self.recepcionista)
+        bandeja = self.client.get(reverse("dashboard:recepcionista"))
+        self.assertEqual(bandeja.status_code, 200)
+        self.assertContains(bandeja, self.paciente.username)
+
+        response = self.client.post(reverse("citas:cambiar_estado", args=[cita.pk, "confirmada"]))
+        self.assertRedirects(response, reverse("dashboard:recepcionista"))
+        cita.refresh_from_db()
+        self.assertEqual(cita.estado, Cita.CONFIRMADA)
 
 
 class RecordatoriosEmailTests(TestCase):

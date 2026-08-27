@@ -1,11 +1,11 @@
 from django.conf import settings
 from django.contrib import messages
-from django.core.mail import EmailMessage
 from django.shortcuts import redirect, render
 
 from apps.especialidades.models import Especialidad
 from apps.medicos.models import Medico
 from apps.configuracion.models import ConfiguracionContacto
+from apps.usuarios.services.email_service import EmailError, enviar_correo
 from .forms import ContactoForm
 
 
@@ -73,12 +73,13 @@ def contacto(request):
             f"Mensaje:\n{datos['mensaje']}"
         )
         try:
-            EmailMessage(
-                subject=f"Contacto web: {datos['asunto']}", body=cuerpo,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[settings.CONTACT_RECIPIENT_EMAIL], reply_to=[datos["correo"]],
-            ).send(fail_silently=False)
-        except Exception:
+            enviar_correo(
+                settings.CONTACT_RECIPIENT_EMAIL,
+                f"Contacto web: {datos['asunto']}",
+                cuerpo,
+                reply_to=datos["correo"],
+            )
+        except EmailError:
             messages.error(request, "No pudimos enviar tu mensaje. Inténtalo nuevamente o escríbenos directamente.")
         else:
             messages.success(request, "Tu mensaje fue enviado correctamente. Te responderemos lo antes posible.")

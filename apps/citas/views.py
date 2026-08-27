@@ -1,5 +1,8 @@
 import logging
 
+from django.conf import settings
+from django.middleware.csrf import get_token
+from django.http import HttpResponse
 from django.shortcuts import render
 
 from django.contrib import messages
@@ -9,14 +12,62 @@ from django.http import JsonResponse
 from django.db.models.deletion import ProtectedError
 from datetime import datetime, timedelta
 from django.utils import timezone
+from django.utils.html import escape
+from django.views.decorators.http import require_http_methods
 
 from apps.medicos.models import Medico
 from apps.usuarios.decorators import administrador_o_recepcionista, solo_administrador, solo_paciente, usuario_con_perfil_activo
+from apps.usuarios.services.email_service import EmailError, enviar_correo
 
 from .forms import AgendarCitaForm, BancoForm, CitaRecepcionForm, ComprobantePagoForm, RevisarPagoForm
 from .models import Banco, Cita
 from .services.email_service import enviar_estado, enviar_estado_pago
 logger = logging.getLogger(__name__)
+
+
+@solo_administrador
+@require_http_methods(["GET", "POST"])
+def prueba_email(request):
+    """Diagnostico manual protegido del proveedor de correo de produccion."""
+    destinatario = settings.CONTACT_RECIPIENT_EMAIL
+    proveedor = getattr(settings, "EMAIL_PROVIDER", "smtp")
+    if request.method == "GET":
+        csrf_token = get_token(request)
+        return HttpResponse(
+            f"""
+            <h1>Prueba de correo</h1>
+            <p>Proveedor configurado: <strong>{escape(proveedor)}</strong></p>
+            <p>Destinatario: <strong>{escape(destinatario)}</strong></p>
+            <form method="post">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{escape(csrf_token)}">
+                <button type="submit">Enviar correo de prueba</button>
+            </form>
+            """
+        )
+    try:
+        resultado = enviar_correo(
+            destinatario=destinatario,
+            asunto="Prueba de correo - Clinica HHVC",
+            mensaje=(
+                "Este es un correo de prueba enviado desde Django en Render.\n\n"
+                "Si recibiste este mensaje, la configuracion de correo funciona correctamente."
+            ),
+        )
+    except EmailError as exc:
+        logger.exception("Fallo la prueba manual de correo con %s.", proveedor)
+        return HttpResponse(
+            f"<h1>Error al enviar el correo</h1><p>{escape(str(exc))}</p>",
+            status=500,
+        )
+    return HttpResponse(
+        f"""
+        <h1>Correo enviado correctamente</h1>
+        <p>Proveedor: {escape(proveedor)}</p>
+        <p>Resultado: {escape(str(resultado))}</p>
+        <p>Revisa la bandeja de entrada de:</p>
+        <strong>{escape(destinatario)}</strong>
+        """
+    )
 
 
 def _intentar_notificacion(funcion, *args):

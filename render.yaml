@@ -25,6 +25,8 @@ services:
         sync: false
       - key: EMAIL_HOST
         value: smtp.gmail.com
+      - key: EMAIL_PROVIDER
+        value: brevo
       - key: EMAIL_PORT
         value: "587"
       - key: EMAIL_USE_TLS
@@ -39,3 +41,9 @@ services:
         sync: false
       - key: CONTACT_RECIPIENT_EMAIL
         sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_SENDER_EMAIL
+        sync: false
+      - key: BREVO_SENDER_NAME
+        value: Clinica Reina del Cisne

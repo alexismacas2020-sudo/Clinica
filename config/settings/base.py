@@ -366,6 +366,7 @@ CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://127.0.0.1:6379/1")
 CELERY_TIMEZONE = TIME_ZONE
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_PROVIDER = env("EMAIL_PROVIDER", default="smtp").strip().lower()
 EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
@@ -381,6 +382,10 @@ CONTACT_RECIPIENT_EMAIL = env(
     "CONTACT_RECIPIENT_EMAIL",
     default="alexismacas2020@gmail.com",
 ).strip()
+BREVO_API_URL = env("BREVO_API_URL", default="https://api.brevo.com/v3/smtp/email").strip()
+BREVO_API_KEY = env("BREVO_API_KEY", default="").strip()
+BREVO_SENDER_EMAIL = env("BREVO_SENDER_EMAIL", default=EMAIL_HOST_USER).strip()
+BREVO_SENDER_NAME = env("BREVO_SENDER_NAME", default="Clinica Reina del Cisne").strip()
 CLINICA_NOMBRE = env("CLINICA_NOMBRE", default="Clínica Reina del Cisne")
 CLINICA_DIRECCION = env("CLINICA_DIRECCION", default="Centro Médico Reina")
 
