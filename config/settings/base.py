@@ -369,6 +369,7 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=10)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="").strip()
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="").strip()
 # Google muestra las contraseñas de aplicacion separadas en grupos de cuatro.

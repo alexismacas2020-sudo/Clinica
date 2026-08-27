@@ -39,7 +39,7 @@ def enviar_correo(destinatario, asunto, mensaje, adjuntos=None):
         comprobar_configuracion_email()
 
     try:
-        conexion = get_connection(fail_silently=False)
+        conexion = get_connection(fail_silently=False, timeout=settings.EMAIL_TIMEOUT)
         correo = EmailMultiAlternatives(
             subject=asunto,
             body=mensaje,

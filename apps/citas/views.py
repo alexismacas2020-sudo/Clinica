@@ -1,3 +1,5 @@
+import logging
+
 from django.shortcuts import render
 
 from django.contrib import messages
@@ -13,8 +15,22 @@ from apps.usuarios.decorators import administrador_o_recepcionista, solo_adminis
 
 from .forms import AgendarCitaForm, BancoForm, CitaRecepcionForm, ComprobantePagoForm, RevisarPagoForm
 from .models import Banco, Cita
-from .services.email_service import enviar_estado_pago
-from apps.usuarios.services.email_service import EmailError
+from .services.email_service import enviar_estado, enviar_estado_pago
+logger = logging.getLogger(__name__)
+
+
+def _intentar_notificacion(funcion, *args):
+    """Intenta notificar sin permitir que el correo rompa la operación web."""
+    try:
+        funcion(*args)
+    except Exception:
+        logger.exception(
+            "Falló la notificación %s para la cita %s.",
+            getattr(funcion, "__name__", "correo"),
+            getattr(args[0], "pk", ""),
+        )
+        return False
+    return True
 
 
 def _horarios_libres(medico, fecha, excluir=None):
@@ -92,6 +108,7 @@ def agendar(request):
         cita.paciente = request.user
         cita.full_clean()
         cita.save()
+        _intentar_notificacion(enviar_estado, cita)
         messages.success(request, "¡Cita agendada con éxito! Tu solicitud quedó pendiente de confirmación.")
         return redirect("citas:mis_citas")
     if request.method == "POST":
@@ -110,6 +127,7 @@ def recepcion_crear(request):
     form = CitaRecepcionForm(request.POST or None, request.FILES or None)
     if request.method == "POST" and form.is_valid():
         cita = form.save()
+        _intentar_notificacion(enviar_estado, cita)
         messages.success(request, f"Cita creada para {cita.paciente.get_full_name() or cita.paciente.username}.")
         return redirect("dashboard:recepcionista" if request.user.perfil.rol == "RECEPCIONISTA" else "dashboard:admin")
     if request.method == "POST":
@@ -149,6 +167,16 @@ def cambiar_estado(request, pk, estado):
         cita.estado = estado
         cita.save(update_fields=["estado"])
         if estado != estado_anterior:
+            correo_enviado = _intentar_notificacion(enviar_estado, cita, estado_anterior)
+            if estado == Cita.CONFIRMADA:
+                cita.confirmacion_email_enviada = correo_enviado
+                cita.fecha_confirmacion_email = timezone.now() if correo_enviado else None
+                cita.error_confirmacion_email = "" if correo_enviado else "No se pudo enviar la notificación."
+                cita.save(update_fields=[
+                    "confirmacion_email_enviada",
+                    "fecha_confirmacion_email",
+                    "error_confirmacion_email",
+                ])
             messages.success(request, f"La cita quedó {cita.get_estado_display().lower()} correctamente.")
         else:
             messages.info(request, f"La cita ya estaba {cita.get_estado_display().lower()}.")
@@ -169,10 +197,7 @@ def subir_comprobante(request, pk):
         cita.pago_revisado_en = None
         cita.pago_revisado_por = None
         cita.save()
-        try:
-            enviar_estado_pago(cita)
-        except EmailError:
-            messages.warning(request, "El comprobante fue recibido, pero no se pudo enviar el correo.")
+        _intentar_notificacion(enviar_estado_pago, cita)
         messages.success(request, "Comprobante enviado para revisión.")
         return redirect("citas:mis_citas")
     return render(request, "citas/subir_comprobante.html", {"form": form, "cita": cita})
@@ -192,10 +217,7 @@ def revisar_pago(request, pk):
         cita.pago_revisado_en = timezone.now()
         cita.pago_revisado_por = request.user
         cita.save(update_fields=["estado_pago", "observacion_pago", "pago_revisado_en", "pago_revisado_por"])
-        try:
-            enviar_estado_pago(cita)
-        except EmailError:
-            messages.warning(request, "El pago fue revisado, pero no se pudo enviar el correo.")
+        _intentar_notificacion(enviar_estado_pago, cita)
         messages.success(request, f"El pago quedó {cita.get_estado_pago_display().lower()}.")
         destino = "dashboard:admin" if request.user.is_superuser or request.user.perfil.es_administrador else "dashboard:recepcionista"
         return redirect(destino)
@@ -219,10 +241,7 @@ def registrar_pago_efectivo(request, pk):
     cita.pago_revisado_en = timezone.now()
     cita.pago_revisado_por = request.user
     cita.save(update_fields=["estado_pago", "observacion_pago", "pago_revisado_en", "pago_revisado_por"])
-    try:
-        enviar_estado_pago(cita)
-    except EmailError:
-        messages.warning(request, "El pago quedó registrado, pero no se pudo enviar el correo al paciente.")
+    _intentar_notificacion(enviar_estado_pago, cita)
     messages.success(request, "Pago en efectivo registrado. La cita ya puede ser atendida cuando esté confirmada.")
     return redirect("dashboard:recepcionista")
 
