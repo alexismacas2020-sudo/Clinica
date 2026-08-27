@@ -95,9 +95,20 @@ class Banco(models.Model):
     identificacion = models.CharField(max_length=30, blank=True)
     activo = models.BooleanField(default=True)
     codigo_qr = models.ImageField(upload_to="pagos/codigos_qr/", blank=True, verbose_name="Código QR de pago")
+    codigo_qr_url = models.URLField(
+        blank=True,
+        verbose_name="Enlace de la imagen QR",
+        help_text="URL directa de una imagen JPG, PNG o WEBP.",
+    )
 
     class Meta:
         ordering = ("nombre",)
 
     def __str__(self):
         return self.nombre
+
+    @property
+    def codigo_qr_src(self):
+        if self.codigo_qr:
+            return self.codigo_qr.url
+        return self.codigo_qr_url

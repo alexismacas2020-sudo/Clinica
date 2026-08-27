@@ -161,4 +161,7 @@ class RevisarPagoForm(forms.Form):
 class BancoForm(forms.ModelForm):
     class Meta:
         model = Banco
-        fields = ("nombre", "titular", "numero_cuenta", "tipo_cuenta", "identificacion", "codigo_qr", "activo")
+        fields = (
+            "nombre", "titular", "numero_cuenta", "tipo_cuenta", "identificacion",
+            "codigo_qr", "codigo_qr_url", "activo",
+        )
