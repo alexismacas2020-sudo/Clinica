@@ -175,7 +175,10 @@ def cambiar_estado(request, pk, estado):
             except (EmailError, ValidationError) as exc:
                 cita.error_confirmacion_email = str(exc)[:1000]
                 cita.save(update_fields=["error_confirmacion_email"])
-                messages.warning(request, "La cita quedó confirmada, pero no fue posible enviar el correo al paciente.")
+                messages.warning(
+                    request,
+                    f"La cita quedó confirmada, pero no fue posible enviar el correo al paciente. {exc}",
+                )
         else:
             if estado == Cita.CANCELADA and estado_anterior != Cita.CANCELADA:
                 try:

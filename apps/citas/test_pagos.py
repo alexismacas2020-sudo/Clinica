@@ -2,8 +2,9 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -35,6 +36,37 @@ class FlujoPagosTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Agenda tu cita")
         self.assertContains(response, self.banco.nombre)
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        DEFAULT_FROM_EMAIL="Clínica Reina <clinica@example.com>",
+    )
+    def test_agendar_y_confirmar_envian_correos(self):
+        self.client.force_login(self.paciente)
+        response = self.client.post(reverse("citas:agendar"), {
+            "especialidad": self.especialidad.pk,
+            "medico": self.medico.pk,
+            "fecha": self.fecha.isoformat(),
+            "hora": "11:00",
+            "motivo": "Control",
+            "metodo_pago": Cita.EFECTIVO,
+            "acepta_terminos": "on",
+        })
+        self.assertRedirects(response, reverse("citas:mis_citas"))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, "Solicitud de cita recibida")
+
+        cita = Cita.objects.get(paciente=self.paciente)
+        mail.outbox.clear()
+        self.client.force_login(self.recepcion)
+        response = self.client.post(
+            reverse("citas:cambiar_estado", args=[cita.pk, "confirmada"])
+        )
+        self.assertRedirects(response, reverse("dashboard:recepcionista"))
+        cita.refresh_from_db()
+        self.assertTrue(cita.confirmacion_email_enviada)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, "Tu cita fue confirmada")
 
     @patch("apps.citas.views.enviar_estado_pago")
     @patch("apps.citas.views.enviar_estado")
