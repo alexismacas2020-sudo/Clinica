@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt && python manage.py collectstatic --noinput
-    startCommand: python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    startCommand: python manage.py migrate --noinput && python manage.py ensure_admin && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     healthCheckPath: /
     envVars:
       - key: DJANGO_SETTINGS_MODULE
@@ -17,6 +17,12 @@ services:
         sync: false
       - key: DATABASE_SSLMODE
         value: require
+      - key: DJANGO_ADMIN_USERNAME
+        sync: false
+      - key: DJANGO_ADMIN_EMAIL
+        sync: false
+      - key: DJANGO_ADMIN_PASSWORD
+        sync: false
       - key: CLOUDINARY_URL
         sync: false
       - key: GOOGLE_OAUTH_CLIENT_ID
