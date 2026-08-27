@@ -14,7 +14,7 @@ from apps.usuarios.decorators import administrador_o_recepcionista, solo_adminis
 
 from .forms import AgendarCitaForm, BancoForm, CitaRecepcionForm, ComprobantePagoForm, RevisarPagoForm
 from .models import Banco, Cita
-from .services.email_service import enviar_estado, enviar_estado_pago
+from .services.email_service import enviar_aviso_nueva_cita_clinica, enviar_estado, enviar_estado_pago
 from apps.usuarios.services.email_service import EmailError
 
 
@@ -97,6 +97,10 @@ def agendar(request):
             enviar_estado(cita)
         except EmailError as exc:
             messages.warning(request, f"La cita se registró, pero no fue posible enviar el correo. {exc}")
+        try:
+            enviar_aviso_nueva_cita_clinica(cita)
+        except EmailError as exc:
+            messages.warning(request, f"La cita se registró, pero no fue posible avisar a la clínica. {exc}")
         if cita.metodo_pago == Cita.TRANSFERENCIA:
             try:
                 enviar_estado_pago(cita)

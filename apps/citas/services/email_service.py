@@ -26,6 +26,28 @@ def enviar_confirmacion(cita):
     return enviar_correo(cita.paciente.email, "Tu cita fue confirmada", mensaje)
 
 
+def enviar_aviso_nueva_cita_clinica(cita):
+    """Avisa a la clínica cuando un paciente registra una nueva cita."""
+    nombre = cita.paciente.get_full_name() or cita.paciente.username
+    correo = cita.paciente.email or "No registrado"
+    telefono = getattr(getattr(cita.paciente, "perfil", None), "telefono", "") or "No registrado"
+    mensaje = (
+        "Se registró una nueva solicitud de cita.\n\n"
+        f"Paciente: {nombre}\n"
+        f"Correo: {correo}\n"
+        f"Teléfono: {telefono}\n"
+        f"Motivo: {cita.motivo}\n"
+        f"Método de pago: {cita.get_metodo_pago_display()}\n\n"
+        f"{_datos_cita(cita)}\n"
+        "Ingresa al panel de recepción para revisarla y confirmarla."
+    )
+    return enviar_correo(
+        settings.CONTACT_RECIPIENT_EMAIL,
+        f"Nueva cita por confirmar: {nombre}",
+        mensaje,
+    )
+
+
 def enviar_estado(cita, estado_anterior=None):
     nombre = cita.paciente.get_full_name() or cita.paciente.username
     contenido = _datos_cita(cita)

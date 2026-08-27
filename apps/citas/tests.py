@@ -94,6 +94,43 @@ class RecepcionCitasTests(TestCase):
         self.assertEqual(ids, [self.medico.pk])
 
 
+class AvisoNuevaCitaTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.paciente = User.objects.create_user(
+            "paciente-aviso", email="paciente@example.com", password="Clave123!"
+        )
+        self.especialidad = Especialidad.objects.create(nombre="Medicina general")
+        self.medico = Medico.objects.create(
+            especialidad=self.especialidad,
+            nombres="Ana",
+            apellidos="Prueba",
+            registro_profesional="AVISO-1",
+        )
+        self.fecha = timezone.localdate() + timedelta(days=1)
+        while self.fecha.weekday() >= 5:
+            self.fecha += timedelta(days=1)
+
+    @patch("apps.citas.views.enviar_aviso_nueva_cita_clinica")
+    @patch("apps.citas.views.enviar_estado")
+    def test_agendamiento_avisa_al_paciente_y_a_la_clinica(self, enviar_estado, enviar_aviso):
+        self.client.force_login(self.paciente)
+        response = self.client.post(reverse("citas:agendar"), {
+            "especialidad": self.especialidad.pk,
+            "medico": self.medico.pk,
+            "fecha": self.fecha.isoformat(),
+            "hora": "10:00",
+            "motivo": "Control general",
+            "metodo_pago": Cita.EFECTIVO,
+            "acepta_terminos": "on",
+        })
+
+        self.assertRedirects(response, reverse("citas:mis_citas"))
+        cita = Cita.objects.get(paciente=self.paciente)
+        enviar_estado.assert_called_once_with(cita)
+        enviar_aviso.assert_called_once_with(cita)
+
+
 class RecordatoriosEmailTests(TestCase):
     def setUp(self):
         User = get_user_model()
