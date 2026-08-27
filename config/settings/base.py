@@ -369,10 +369,17 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
-CONTACT_RECIPIENT_EMAIL = env("CONTACT_RECIPIENT_EMAIL", default="alexismacas2020@gmail.com")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="").strip()
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="").strip()
+# Google muestra las contraseñas de aplicacion separadas en grupos de cuatro.
+# Gmail espera los 16 caracteres sin espacios al autenticar por SMTP.
+if EMAIL_HOST.lower().strip() == "smtp.gmail.com":
+    EMAIL_HOST_PASSWORD = "".join(EMAIL_HOST_PASSWORD.split())
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER).strip()
+CONTACT_RECIPIENT_EMAIL = env(
+    "CONTACT_RECIPIENT_EMAIL",
+    default="alexismacas2020@gmail.com",
+).strip()
 CLINICA_NOMBRE = env("CLINICA_NOMBRE", default="Clínica Reina del Cisne")
 CLINICA_DIRECCION = env("CLINICA_DIRECCION", default="Centro Médico Reina")
 
