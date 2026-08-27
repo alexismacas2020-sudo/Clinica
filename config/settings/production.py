@@ -1,5 +1,8 @@
 from .base import *
 
+# Render Free bloquea los puertos SMTP. Si el servicio existente no tiene
+# EMAIL_PROVIDER configurado, se usa la API HTTPS de Brevo en produccion.
+EMAIL_PROVIDER = env("EMAIL_PROVIDER", default="brevo").strip().lower()
 
 # Nunca se debe mostrar la pagina de depuracion en produccion.
 DEBUG = False
