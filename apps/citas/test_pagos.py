@@ -29,6 +29,13 @@ class FlujoPagosTests(TestCase):
         while self.fecha.weekday() >= 5:
             self.fecha += timedelta(days=1)
 
+    def test_paciente_puede_abrir_formulario_de_agendamiento(self):
+        self.client.force_login(self.paciente)
+        response = self.client.get(reverse("citas:agendar"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Agenda tu cita")
+        self.assertContains(response, self.banco.nombre)
+
     @patch("apps.citas.views.enviar_estado_pago")
     @patch("apps.citas.views.enviar_estado")
     def test_transferencia_comprobante_y_aprobacion(self, estado_email, pago_email):
