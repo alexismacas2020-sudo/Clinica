@@ -95,8 +95,8 @@ def agendar(request):
         cita.save()
         try:
             enviar_estado(cita)
-        except EmailError:
-            messages.warning(request, "La cita se registró, pero no fue posible enviar el correo.")
+        except EmailError as exc:
+            messages.warning(request, f"La cita se registró, pero no fue posible enviar el correo. {exc}")
         if cita.metodo_pago == Cita.TRANSFERENCIA:
             try:
                 enviar_estado_pago(cita)

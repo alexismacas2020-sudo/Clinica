@@ -11,8 +11,12 @@ class EmailError(Exception):
 
 
 def enviar_correo(destinatario, asunto, mensaje, adjuntos=None):
+    destinatario = (destinatario or "").strip()
+    if not destinatario:
+        raise EmailError("El destinatario no tiene un correo electrónico registrado.")
     if settings.EMAIL_BACKEND.lower().endswith("smtp.emailbackend") and (not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD):
-        raise EmailError("El correo de la clínica no está configurado.")
+        logger.error("Configuración SMTP incompleta: faltan EMAIL_HOST_USER o EMAIL_HOST_PASSWORD.")
+        raise EmailError("El correo de la clínica no está configurado en el servidor.")
     try:
         correo = EmailMessage(asunto, mensaje, settings.DEFAULT_FROM_EMAIL, [destinatario])
         for nombre, contenido, tipo in adjuntos or []:
@@ -23,5 +27,5 @@ def enviar_correo(destinatario, asunto, mensaje, adjuntos=None):
     except EmailError:
         raise
     except Exception as exc:
-        logger.warning("Falló el envío de correo: %s", type(exc).__name__)
+        logger.exception("Falló el envío SMTP (%s).", type(exc).__name__)
         raise EmailError("No fue posible enviar el correo desde Gmail.") from exc
